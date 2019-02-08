@@ -115,24 +115,6 @@ void Vec3::make_unit_vector() {
 // _____________________________________________________________________________
 
 // _____________________________________________________________________________
-inline std::ostream& operator<<(std::ostream &os, const Vec3 &v) {
-  os << "[" << v.x() << ", " << v.y() << ", " << v.z() << "]";
-  return os;
-}
-
-// _____________________________________________________________________________
-inline float dot(const Vec3 &v1, const Vec3 &v2) {
-  return v1.x()*v2.x() + v1.y()*v2.y() + v1.z()*v2.z();
-}
-
-// _____________________________________________________________________________
-inline Vec3 cross(const Vec3 &v1, const Vec3 &v2) {
-  return Vec3(v1.y()*v2.z() - v1.z()*v2.y(),
-              v1.z()*v2.x() - v1.x()*v2.z(),
-              v1.x()*v2.y() - v1.y()*v2.x());
-}
-
-// _____________________________________________________________________________
 inline Vec3 operator+(const Vec3 &v1, const Vec3 &v2) {
   return Vec3(v1.x()+v2.x(), v1.y()+v2.y(), v1.z()+v2.z());
 }
@@ -160,6 +142,34 @@ inline Vec3 operator*(const Vec3 &v, float t) {
 // _____________________________________________________________________________
 inline Vec3 operator*(float t, const Vec3 &v) {
   return Vec3(t*v.x(), t*v.y(), t*v.z());
+}
+
+// _____________________________________________________________________________
+inline Vec3 operator/(const Vec3 &v, float t) {
+  return Vec3(v.x()/t, v.y()/t, v.z()/t);
+}
+
+// _____________________________________________________________________________
+inline std::ostream& operator<<(std::ostream &os, const Vec3 &v) {
+  os << "[" << v.x() << ", " << v.y() << ", " << v.z() << "]";
+  return os;
+}
+
+// _____________________________________________________________________________
+inline float dot(const Vec3 &v1, const Vec3 &v2) {
+  return v1.x()*v2.x() + v1.y()*v2.y() + v1.z()*v2.z();
+}
+
+// _____________________________________________________________________________
+inline Vec3 cross(const Vec3 &v1, const Vec3 &v2) {
+  return Vec3(v1.y()*v2.z() - v1.z()*v2.y(),
+              v1.z()*v2.x() - v1.x()*v2.z(),
+              v1.x()*v2.y() - v1.y()*v2.x());
+}
+
+// _____________________________________________________________________________
+inline Vec3 make_unit_vector(const Vec3 v) {
+  return v / v.length();
 }
 
 
