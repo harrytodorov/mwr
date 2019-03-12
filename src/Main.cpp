@@ -3,11 +3,12 @@
 
 #include <iostream>
 #include <fstream>  // Output to a file
+#include <cmath>  // sqrt()
 
 #include "Vec3.h"
 #include "Ray.h"
 
-bool hit_sphere(const Vec3 &center, float radius, const Ray &r) {
+float hit_sphere(const Vec3 &center, float radius, const Ray &r) {
   // Solve discriminant:
   // D = b^2 - 4ac
   // a = dot(ray.dir, ray.dir)
@@ -20,21 +21,41 @@ bool hit_sphere(const Vec3 &center, float radius, const Ray &r) {
   float c = dot(u, u) - radius*radius;
 
   float discriminant = b*b - 4.f*a*c;
-  // When D >= 0, there is an intersection
-  return (discriminant >= 0.f);
+  if (discriminant < 0) 
+    return -1.f;
+  else 
+    return (-b - sqrt(discriminant)) / (2.f*a);
+
+  // Would be implemented later; for some reason;
+  // using this code, I cannot reproduce the picture
+  // from the book
+  // // When D >= 0, there is an intersection
+  // // D == 0: 1 intersection
+  // if (discriminant == 0) return -b / (2.f*a);
+  // D > 0: 2 intersection; return the smaller
+  // float dis_sqrt = sqrt(discriminant);
+  // float t1 = (-b + dis_sqrt) / (2.f*a);
+  // float t2 = (-b - dis_sqrt) / (2.f*a);
+  // return (t1 > t2) ? t1 : t2;
 }
 
 Vec3 color(const Ray &r) {
+  Vec3 sphere_center = Vec3(0.f, 0.f, -1.f);
+  float t = hit_sphere(sphere_center, 0.5f, r);
   // Color a sphere in the center of the screen in green
-  if (hit_sphere(Vec3(0.f, 0.f, -1.f), 0.5f, r))
-    return Vec3(0.60f, 0.78f, 0.25f);
+  if (t > 0.f) {
+    Vec3 normal = make_unit_vector(r.point_at_t(t) - sphere_center);
+    return 0.5f*Vec3(normal.x() + 1.f,
+                     normal.y() + 1.f,
+                     normal.z() + 1.f);
+  }
 
   Vec3 unit_direction = make_unit_vector(r.direction());
   // After making the ray's direction a unit vector, y-axis is in the range
   // [-1, 1]. Following transformation first adds 1 to the y-axis
   // and it now has the range [0, 2]. Multiplying it by 0.5 scales down the
   // range to [0, 1]
-  float t = 0.5f * (unit_direction.y() + 1.f);
+  t = 0.5f * (unit_direction.y() + 1.f);
   // Linear interpolation interpolation between white (t = 0) and blue
   // (t = 1).
   return

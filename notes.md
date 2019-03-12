@@ -40,3 +40,11 @@ I could practice the math on solving the equation for ray-sphere
 intesection. It's really rewarding to solve the whole thing first
 on paper and afterwards just to transfer it all into code. That's 
 definitely the way I like to program.
+
+Important take-off: **be really careful, when implementing math formula**!
+
+$t0 \neq t1$
+```
+t0 = (-b - sqrt(discriminant)) / 2.f*a
+t1 = (-b - sqrt(discriminant)) / (2.f*a)
+```
