@@ -48,8 +48,8 @@ int main() {
     bool printed = false;
     for (int i = 0; i < nx; i++) {
       // Get camera screen parameters
-      float u = float(i) / float(nx);
-      float v = float(j) / float(ny);
+      float u = static_cast<float>(i) / static_cast<float>(nx);
+      float v = static_cast<float>(j) / static_cast<float>(ny);
 
       // Create the ray
       Ray r(camera_origin, lower_left_corner + u*horizontal + v*vertical);
@@ -67,9 +67,9 @@ int main() {
 //               0.2f);
 
       // Convert floats to ints
-      int ir = int(255.99f * col.r());
-      int ig = int(255.99f * col.g());
-      int ib = int(255.99f * col.b());
+      int ir = static_cast<int>(255.99f * col.r());
+      int ig = static_cast<int>(255.99f * col.g());
+      int ib = static_cast<int>(255.99f * col.b());
 
       // Print pixel
       image_file << ir << " " << ig << " " << ib << std::endl;

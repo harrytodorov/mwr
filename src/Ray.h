@@ -1,8 +1,8 @@
 // Copyright (c) 2019, University of Freiburg.
 // Author: Haralambi Todorov <harrytodorov@gmail.com>
 
-#ifndef SRC_RAY_H
-#define SRC_RAY_H
+#ifndef SRC_RAY_H_
+#define SRC_RAY_H_
 
 #include "Vec3.h"
 
@@ -20,4 +20,4 @@ class Ray {
   Vec3 _direction;
 };
 
-#endif  //SRC_RAY_H
+#endif  // SRC_RAY_H_
