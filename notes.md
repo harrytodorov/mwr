@@ -27,3 +27,16 @@ Vec3 operator*(const Vec3 &v, float t)
 Vec3 operator*(float t, const Vec3 &v)
 ```
 
+# Chapter 3: Rays, a simple camera, and background
+I had a small and annoying issue, with the *u/v* parameter for
+traversing the image plane, namely instead of using division *i / # of
+horizontal pixels*, I've did multiplication. Take me some time to find
+out this mistake.
+I made some extensive notes on how linear interpolation works inside
+the `color()`.
+
+# Chapter 4: Adding a sphere
+I could practice the math on solving the equation for ray-sphere
+intesection. It's really rewarding to solve the whole thing first
+on paper and afterwards just to transfer it all into code. That's 
+definitely the way I like to program.
