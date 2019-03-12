@@ -7,8 +7,28 @@
 #include "Vec3.h"
 #include "Ray.h"
 
+bool hit_sphere(const Vec3 &center, float radius, const Ray &r) {
+  // Solve discriminant:
+  // D = b^2 - 4ac
+  // a = dot(ray.dir, ray.dir)
+  // b = 2*dot(ray.dir, ray.orig-center)
+  // c = dot(ray.orig-center, ray.orig-center)
+  // u = ray.orig-center
+  Vec3 u = r.origin() - center;
+  float a = dot(r.direction(), r.direction());
+  float b = 2*dot(r.direction(), u);
+  float c = dot(u, u) - radius*radius;
+
+  float discriminant = b*b - 4.f*a*c;
+  // When D >= 0, there is an intersection
+  return (discriminant >= 0.f);
+}
 
 Vec3 color(const Ray &r) {
+  // Color a sphere in the center of the screen in green
+  if (hit_sphere(Vec3(0.f, 0.f, -1.f), 0.5f, r))
+    return Vec3(0.60f, 0.78f, 0.25f);
+
   Vec3 unit_direction = make_unit_vector(r.direction());
   // After making the ray's direction a unit vector, y-axis is in the range
   // [-1, 1]. Following transformation first adds 1 to the y-axis
@@ -23,7 +43,6 @@ Vec3 color(const Ray &r) {
   // blue color
   t*Vec3(0.5f, 0.7f, 1.f);
 }
-
 
 int main() {
   int nx = 200;
@@ -45,7 +64,6 @@ int main() {
 
   // The actual image pixel
   for (int j = ny - 1; j >= 0; j--) {
-    bool printed = false;
     for (int i = 0; i < nx; i++) {
       // Get camera screen parameters
       float u = static_cast<float>(i) / static_cast<float>(nx);
@@ -56,15 +74,6 @@ int main() {
 
       // Get the color
       Vec3 col = color(r);
-      if (!printed && (j == 0 || j == ny/2 || j == ny-1)) {
-        std::cout << j << ": " << col << std::endl;
-        printed = true;
-      }
-
-//      // RGB pattern
-//      Vec3 col(float(i) / float(nx),
-//               float(j) / float(ny),
-//               0.2f);
 
       // Convert floats to ints
       int ir = static_cast<int>(255.99f * col.r());
