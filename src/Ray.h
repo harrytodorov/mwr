@@ -13,7 +13,7 @@ class Ray {
 
   inline Vec3 origin() const { return _origin; }
   inline Vec3 direction() const { return _direction; }
-  inline Vec3 point_at_t(float t) { return _origin + t*_direction; }
+  inline Vec3 point_at_t(float t) const { return _origin + t*_direction; }
 
  private:
   Vec3 _origin;
