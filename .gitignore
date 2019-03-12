@@ -31,9 +31,10 @@
 *.out
 *.app
 
-# IDE's folders
+# Folders
 .idea/
 .vscode/
+.DS_Store
 
 # Build folder
 build/

@@ -21,22 +21,17 @@ float hit_sphere(const Vec3 &center, float radius, const Ray &r) {
   float c = dot(u, u) - radius*radius;
 
   float discriminant = b*b - 4.f*a*c;
-  if (discriminant < 0) 
-    return -1.f;
-  else 
-    return (-b - sqrt(discriminant)) / (2.f*a);
+  if (discriminant < 0) return -1.f;
 
-  // Would be implemented later; for some reason;
-  // using this code, I cannot reproduce the picture
-  // from the book
-  // // When D >= 0, there is an intersection
-  // // D == 0: 1 intersection
-  // if (discriminant == 0) return -b / (2.f*a);
+  // When D >= 0, there is an intersection
+  // D == 0: 1 intersection
+  if (discriminant == 0) return -b / (2.f*a);
+
   // D > 0: 2 intersection; return the smaller
-  // float dis_sqrt = sqrt(discriminant);
-  // float t1 = (-b + dis_sqrt) / (2.f*a);
-  // float t2 = (-b - dis_sqrt) / (2.f*a);
-  // return (t1 > t2) ? t1 : t2;
+  float dis_sqrt = sqrt(discriminant);
+  float t1 = (-b + dis_sqrt) / (2.f*a);
+  float t2 = (-b - dis_sqrt) / (2.f*a);
+  return (t1 < t2) ? t1 : t2;
 }
 
 Vec3 color(const Ray &r) {
