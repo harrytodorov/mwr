@@ -9,7 +9,7 @@
 // Vector3 class is used to represent colors, locations, directions, etc
 class Vec3 {
  public:
-  Vec3() {}
+  Vec3() = default;
   Vec3(float e0, float e1, float e2) { _e[0] = e0; _e[1] = e1; _e[2] = e2; }
 
   // Location / Direction
@@ -39,7 +39,8 @@ class Vec3 {
   inline void make_unit_vector();
 
  private:
-  float _e[3];
+  // Default initialization set vector's elements to 0
+  float _e[3]{};
 };
 
 // _____________________________________________________________________________

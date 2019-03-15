@@ -13,7 +13,11 @@ include(include/cpplint.cmake)
 cpplint_add_subdirectory(src)
 
 set(SOURCES src/Main.cpp
-        src/Vec3.h)
+            src/Vec3.h
+            src/Ray.h
+            src/Hitable.h
+            src/HitableList.h
+            src/Sphere.h)
 
 # Create executable
 add_executable(ManyWeekendsRayTracer src/Main.cpp)
