@@ -48,7 +48,7 @@ void HitableList::append(Hitable *hitable) {
   // Check if the new element is not empty
   if (hitable == nullptr) return;
 
-  // Check the array's size
+  // Array's capacity should be enlarged
   if (_size >= _capacity) {
     // Double the capacity
     _capacity *= 2;

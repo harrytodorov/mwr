@@ -48,3 +48,10 @@ $t0 \neq t1$
 t0 = (-b - sqrt(discriminant)) / 2.f*a
 t1 = (-b - sqrt(discriminant)) / (2.f*a)
 ```
+
+# Chapter 5: Surface normals and multiple objects
+I decided to implement the HitableList not quite as Peter Shirley, but made a
+dynamic array of pointers, which was a nice exercise. Abstracting the Sphere
+class and the implementation of the Hitable were not so challenging. There is
+the thing inside Google's C++ style guide, that (input/output) parameters to
+functions should be non-const pointers. See [this](https://stackoverflow.com/a/26441753/2935386).
