@@ -87,9 +87,9 @@ Vec3& Vec3::operator*=(float t) {
 Vec3& Vec3::operator/=(float t) {
   float k = 1.f/t;
 
-  _e[0] /= k;
-  _e[1] /= k;
-  _e[2] /= k;
+  _e[0] *= k;
+  _e[1] *= k;
+  _e[2] *= k;
   return *this;
 }
 

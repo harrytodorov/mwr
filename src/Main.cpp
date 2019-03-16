@@ -4,12 +4,14 @@
 #include <iostream>
 #include <fstream>  // Output to a file
 #include <cmath>  // sqrt()
-#include <limits>  // max float
+#include <limits>  // Maxfloat
+#include <random>  // Random number generation
 
 #include "Vec3.h"
 #include "Ray.h"
 #include "Sphere.h"
 #include "HitableList.h"
+#include "Camera.h"
 
 Vec3 color(const Ray &r, Hitable *world) {
   HitableRecord rec;
@@ -37,45 +39,49 @@ Vec3 color(const Ray &r, Hitable *world) {
 int main() {
   int nx = 200;
   int ny = 100;
+  int ns = 100; // Number of samples
+  std::random_device seed; // Random number seed
+  std::mt19937 eng(seed()); // Random number engine
+  std::uniform_real_distribution<float> dist(0.f, 1.f);
 
   std::ofstream image_file;
-  image_file.open("rendered_image.ppm");
+  image_file.open("rendered_image_aliasing.ppm");
 
   // PPM header
   image_file << "P3" << std::endl
              << nx << " " << ny << std::endl
              << "255" << std::endl;
 
-  // Help vectors to traverse the image plane
-  Vec3 lower_left_corner(-2.f, -1.f, -1.f);
-  Vec3 horizontal(4.f, 0.f, 0.f);
-  Vec3 vertical(0.f, 2.f, 0.f);
-  Vec3 camera_origin(0.f, 0.f, 0.f);
-
-  // Objects
+  // World and Objects
   Sphere *s0 = new Sphere(Vec3(0.f, 0.f, -1.f), 0.5f);
   Sphere *s1 = new Sphere(Vec3(0.f, -100.5f, -1.f), 100.f);
-
   HitableList *world = new HitableList(2);
   world->append(s0);
   world->append(s1);
 
-  // Print objects
-  std::cout << "Scene objects:\n" << *s0 << std::endl << *s1 << std::endl;
-
+  // Camera
+  Camera cam;
 
   // The actual image pixel
   for (int j = ny - 1; j >= 0; j--) {
     for (int i = 0; i < nx; i++) {
-      // Get camera screen parameters
-      float u = static_cast<float>(i) / static_cast<float>(nx);
-      float v = static_cast<float>(j) / static_cast<float>(ny);
+      Vec3 col{0.f, 0.f, 0.f};
 
-      // Create the ray
-      Ray r(camera_origin, lower_left_corner + u*horizontal + v*vertical);
+      // Antialiasing
+      for (int s = 0; s < ns; s++) {
+        // Get the sample parameters
+        float u = static_cast<float>(i + dist(eng)) / static_cast<float>(nx);
+        float v = static_cast<float>(j + dist(eng)) / static_cast<float>(ny);
 
-      // Get the color
-      Vec3 col = color(r, world);
+        // Create the ray
+        Ray r = cam.get_ray(u, v);
+
+        // Accumulate color
+        col += color(r, world);
+      }
+
+      // Box sampling
+      col /= static_cast<float>(ns);
 
       // Convert floats to ints
       int ir = static_cast<int>(255.99f * col.r());

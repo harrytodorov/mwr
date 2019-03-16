@@ -17,7 +17,8 @@ set(SOURCES src/Main.cpp
             src/Ray.h
             src/Hitable.h
             src/HitableList.h
-            src/Sphere.h)
+            src/Sphere.h
+            src/Camera.h)
 
 # Create executable
 add_executable(ManyWeekendsRayTracer src/Main.cpp)
