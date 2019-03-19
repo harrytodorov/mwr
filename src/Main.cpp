@@ -5,40 +5,17 @@
 #include <fstream>  // Output to a file
 #include <cmath>  // sqrt()
 #include <limits>  // Maxfloat
-#include <random>  // Random number generation
 
 #include "Vec3.h"
 #include "Ray.h"
 #include "Sphere.h"
 #include "HitableList.h"
 #include "Camera.h"
-
-
-// Define random number generation globally
-std::random_device seed; // Random number seed
-std::mt19937 eng(seed()); // Random number engine
-std::uniform_real_distribution<float> dist_01(0.f, 1.f);
-std::uniform_real_distribution<float> dist_11(-1.f, 1.f);
+#include "Utils.h"
+#include "Lambertian.h"
 
 // Define shadow bias
 #define SHADOW_BIAS 0.001f
-
-/**
- * Pick a random point in the unit sphere using the rejection method.
- * Algoritmh:
- * 1. Generate a random point inside the unit cube just with x,y,z having
- *    random values between [-1, 1).
- * 2. Generate new points while the squred length of the point is larger than 1
- */
-Vec3 random_in_unit_sphere() {
-  Vec3 point;
-  do {
-    point[0] = dist_11(eng);
-    point[1] = dist_11(eng);
-    point[2] = dist_11(eng);
-  } while (point.squared_length() >= 1.f);
-  return point;
-}
 
 Vec3 color(const Ray &r, Hitable *world) {
   HitRecord rec;
@@ -71,7 +48,7 @@ Vec3 color(const Ray &r, Hitable *world) {
 int main() {
   int nx = 200;
   int ny = 100;
-  int ns = 100; // Number of samples
+  int ns = 100;  // Number of samples
 
   std::ofstream image_file;
   image_file.open("rendered_image_aliasing_gamma.ppm");
@@ -82,8 +59,8 @@ int main() {
              << "255" << std::endl;
 
   // World and Objects
-  Sphere *s0 = new Sphere(Vec3(0.f, 0.f, -1.f), 0.5f);
-  Sphere *s1 = new Sphere(Vec3(0.f, -100.5f, -1.f), 100.f);
+  Sphere *s0 = new Sphere(Vec3(0.f, 0.f, -1.f), 0.5f, new Lambertian(Vec3(0.8f, 0.3f, 0.3f)));
+  Sphere *s1 = new Sphere(Vec3(0.f, -100.5f, -1.f), 100.f, new Lambertian(Vec3(0.8f, 0.8f, 0.f)));
   HitableList *world = new HitableList(2);
   world->append(s0);
   world->append(s1);
@@ -99,8 +76,8 @@ int main() {
       // Antialiasing
       for (int s = 0; s < ns; s++) {
         // Get the sample parameters
-        float u = static_cast<float>(i + dist_01(eng)) / static_cast<float>(nx);
-        float v = static_cast<float>(j + dist_01(eng)) / static_cast<float>(ny);
+        float u = static_cast<float>((i + get_random_in_range(0.f, 1.f)) / nx);
+        float v = static_cast<float>((j + get_random_in_range(0.f, 1.f)) / ny);
 
         // Create the ray
         Ray r = cam.get_ray(u, v);
