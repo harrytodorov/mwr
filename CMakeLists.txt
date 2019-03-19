@@ -6,7 +6,7 @@ project(ManyWeekendsRayTracer)
 
 # Enable C++17 standard and set the comiler options
 set(CMAKE_CXX_STANDARD 17)
-# add_compile_options(-Wall -Wextra -pedantic -Werror)
+add_compile_options(-Wall -Wextra -pedantic)
 
 set(SOURCES src/Main.cpp
             src/Vec3.h
@@ -16,7 +16,9 @@ set(SOURCES src/Main.cpp
             src/Sphere.h
             src/Camera.h
             src/Material.h
-            src/Utils.h)
+            src/Utils.h
+            src/Lambertian.h
+            src/Metal.h)
 
 # Create executable
 add_executable(ManyWeekendsRayTracer src/Main.cpp)
