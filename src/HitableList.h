@@ -21,7 +21,7 @@ class HitableList: public Hitable {
   void append(Hitable *hitable);
   void clear(Hitable **array);
 
-  bool hit(const Ray &r, float t_min, float t_max, HitableRecord &rec) const;
+  bool hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const;
 
  private:
   int _size{0};
@@ -87,8 +87,8 @@ void HitableList::clear(Hitable **array) {
 bool HitableList::hit(const Ray &r,
                       float t_min,
                       float t_max,
-                      HitableRecord &rec) const {
-  HitableRecord temp_rec;
+                      HitRecord &rec) const {
+  HitRecord temp_rec;
   bool did_hit = false;
   double closest_hit = t_max;
   for (int i = 0; i < _size; i++) {

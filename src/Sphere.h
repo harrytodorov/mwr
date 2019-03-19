@@ -22,11 +22,11 @@ class Sphere: public Hitable {
   virtual bool hit(const Ray &r,
                    float t_min,
                    float t_max,
-                   HitableRecord &rec) const;
+                   HitRecord &rec) const;
 
   inline void set_hit_record(const float t,
                              const Ray &r,
-                             HitableRecord &rec) const {
+                             HitRecord &rec) const {
     rec.t = t;
     rec.p = r.point_at_t(t);
     rec.normal = (rec.p - _center) / _radius;
@@ -41,7 +41,7 @@ class Sphere: public Hitable {
 bool Sphere::hit(const Ray &r,
                  float t_min,
                  float t_max,
-                 HitableRecord &rec) const {
+                 HitRecord &rec) const {
   // Solve discriminant:
   // D = b^2 - 4ac
   // a = dot(ray.dir, ray.dir)

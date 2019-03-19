@@ -41,7 +41,7 @@ Vec3 random_in_unit_sphere() {
 }
 
 Vec3 color(const Ray &r, Hitable *world) {
-  HitableRecord rec;
+  HitRecord rec;
   if (world->hit(r, SHADOW_BIAS, MAXFLOAT, rec)) {
     Vec3 target_direction = rec.normal + random_in_unit_sphere();
     // Recursive call
