@@ -13,21 +13,27 @@
 #include "Camera.h"
 #include "Utils.h"
 #include "Lambertian.h"
+#include "Metal.h"
 
-// Define shadow bias
+// Definitions
 #define SHADOW_BIAS 0.001f
+#define RECURSION_DEPTH 50
 
-Vec3 color(const Ray &r, Hitable *world) {
+Vec3 color(const Ray &r, Hitable *world, int depth) {
   HitRecord rec;
   if (world->hit(r, SHADOW_BIAS, MAXFLOAT, rec)) {
-    Vec3 target_direction = rec.normal + random_in_unit_sphere();
-    // Recursive call
-    return 0.5f * color(Ray(rec.p, target_direction), world);
-    // Same trick as above to make the range of the normal from [-1, 1] to
-    // [0, 2] and then to [0, 1]
-    return 0.5f*Vec3(rec.normal.x() + 1.f,
-                     rec.normal.y() + 1.f,
-                     rec.normal.z() + 1.f);
+    Ray scattered_ray;
+    Vec3 attenuation;
+
+    // Bounce the scattered ray, until maximum recursion depth is reached,
+    // or the material on the hitpoint has decided not to scatter the ray
+    if (depth < RECURSION_DEPTH &&
+        rec.mat_ptr->scatter(r, rec, attenuation, scattered_ray)) {
+      return attenuation * color(scattered_ray, world, depth+1);
+    } else {
+      return Vec3(0.f, 0.f, 0.f);
+    }
+  // Nothing is hit
   } else {
     Vec3 unit_direction = make_unit_vector(r.direction());
     // After making the ray's direction a unit vector, y-axis is in the range
@@ -51,7 +57,7 @@ int main() {
   int ns = 100;  // Number of samples
 
   std::ofstream image_file;
-  image_file.open("rendered_image_aliasing_gamma.ppm");
+  image_file.open("balls_different_materials.ppm");
 
   // PPM header
   image_file << "P3" << std::endl
@@ -59,11 +65,23 @@ int main() {
              << "255" << std::endl;
 
   // World and Objects
-  Sphere *s0 = new Sphere(Vec3(0.f, 0.f, -1.f), 0.5f, new Lambertian(Vec3(0.8f, 0.3f, 0.3f)));
-  Sphere *s1 = new Sphere(Vec3(0.f, -100.5f, -1.f), 100.f, new Lambertian(Vec3(0.8f, 0.8f, 0.f)));
-  HitableList *world = new HitableList(2);
+  Sphere *s0 = new Sphere(Vec3(0.f, 0.f, -1.f),
+                          0.5f,
+                          new Lambertian(Vec3(0.8f, 0.3f, 0.3f)));
+  Sphere *s1 = new Sphere(Vec3(0.f, -100.5f, -1.f),
+                          100.f,
+                          new Lambertian(Vec3(0.8f, 0.8f, 0.f)));
+  Sphere *s2 = new Sphere(Vec3(1.f, 0.f, -1.f),
+                          0.5f,
+                          new Metal(Vec3(0.8f, 0.6f, 0.2f)));
+  Sphere *s3 = new Sphere(Vec3(-1.f, 0.f, -1.f),
+                          0.5f,
+                          new Metal(Vec3(0.8f, 0.8f, 0.8f)));
+  HitableList *world = new HitableList;
   world->append(s0);
   world->append(s1);
+  world->append(s2);
+  world->append(s3);
 
   // Camera
   Camera cam;
@@ -83,7 +101,7 @@ int main() {
         Ray r = cam.get_ray(u, v);
 
         // Accumulate color
-        col += color(r, world);
+        col += color(r, world, 0);
       }
 
       // Box sampling
