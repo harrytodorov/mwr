@@ -11,7 +11,7 @@
 
 class Sphere: public Hitable {
  public:
-  Sphere() {}
+  Sphere() = delete;
   Sphere(const Vec3 &center, float radius, Material *m);
   ~Sphere();
 
@@ -29,6 +29,7 @@ class Sphere: public Hitable {
     rec.t = t;
     rec.p = r.point_at_t(t);
     rec.normal = (rec.p - _center) / _radius;
+    rec.mat_ptr = _mat_ptr;
   }
 
  private:
