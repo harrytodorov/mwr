@@ -1,3 +1,10 @@
+# Google's cpplint command:
+Pass arguments to be modified to functions not as pointers, but as
+const reference.
+```
+cpplint --recursive --filter=-runtime/reference src
+```
+
 # Chapter 1: Output an image
 I should take a look at the 
 [stb_image.h](https://github.com/nothings/stb/blob/master/stb_image.h)

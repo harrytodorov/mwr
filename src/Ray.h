@@ -15,6 +15,9 @@ class Ray {
   inline Vec3 direction() const { return _direction; }
   inline Vec3 point_at_t(float t) const { return _origin + t*_direction; }
 
+  inline void origin(const Vec3 &origin) { _origin = origin; }
+  inline void direction(const Vec3 &direction) { _direction = direction; }
+
  private:
   Vec3 _origin;
   Vec3 _direction;

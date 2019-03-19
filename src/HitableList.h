@@ -8,8 +8,8 @@
 
 class HitableList: public Hitable {
  public:
-  HitableList() = default;
-  HitableList(int capacity);
+  HitableList();
+  explicit HitableList(int capacity);
   HitableList(const HitableList &l) = delete;
   HitableList& operator=(const HitableList &l) = delete;
   ~HitableList();
@@ -30,11 +30,16 @@ class HitableList: public Hitable {
 };
 
 // _____________________________________________________________________________
+HitableList::HitableList() {
+  _data = new Hitable*[_capacity];
+}
+
+// _____________________________________________________________________________
 HitableList::HitableList(int capacity) {
     if (_capacity > 0) {
       _size = 0;
       _capacity = capacity;
-      _data = new Hitable*[capacity];
+      _data = new Hitable*[_capacity];
     }
 }
 

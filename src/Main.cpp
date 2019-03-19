@@ -5,52 +5,35 @@
 #include <fstream>  // Output to a file
 #include <cmath>  // sqrt()
 #include <limits>  // Maxfloat
-#include <random>  // Random number generation
 
 #include "Vec3.h"
 #include "Ray.h"
 #include "Sphere.h"
 #include "HitableList.h"
 #include "Camera.h"
+#include "Utils.h"
+#include "Lambertian.h"
+#include "Metal.h"
 
-
-// Define random number generation globally
-std::random_device seed; // Random number seed
-std::mt19937 eng(seed()); // Random number engine
-std::uniform_real_distribution<float> dist_01(0.f, 1.f);
-std::uniform_real_distribution<float> dist_11(-1.f, 1.f);
-
-// Define shadow bias
+// Definitions
 #define SHADOW_BIAS 0.001f
+#define RECURSION_DEPTH 50
 
-/**
- * Pick a random point in the unit sphere using the rejection method.
- * Algoritmh:
- * 1. Generate a random point inside the unit cube just with x,y,z having
- *    random values between [-1, 1).
- * 2. Generate new points while the squred length of the point is larger than 1
- */
-Vec3 random_in_unit_sphere() {
-  Vec3 point;
-  do {
-    point[0] = dist_11(eng);
-    point[1] = dist_11(eng);
-    point[2] = dist_11(eng);
-  } while (point.squared_length() >= 1.f);
-  return point;
-}
-
-Vec3 color(const Ray &r, Hitable *world) {
+Vec3 color(const Ray &r, Hitable *world, int depth) {
   HitRecord rec;
   if (world->hit(r, SHADOW_BIAS, MAXFLOAT, rec)) {
-    Vec3 target_direction = rec.normal + random_in_unit_sphere();
-    // Recursive call
-    return 0.5f * color(Ray(rec.p, target_direction), world);
-    // Same trick as above to make the range of the normal from [-1, 1] to
-    // [0, 2] and then to [0, 1]
-    return 0.5f*Vec3(rec.normal.x() + 1.f,
-                     rec.normal.y() + 1.f,
-                     rec.normal.z() + 1.f);
+    Ray scattered_ray;
+    Vec3 attenuation;
+
+    // Bounce the scattered ray, until maximum recursion depth is reached,
+    // or the material on the hitpoint has decided not to scatter the ray
+    if (depth < RECURSION_DEPTH &&
+        rec.mat_ptr->scatter(r, rec, attenuation, scattered_ray)) {
+      return attenuation * color(scattered_ray, world, depth+1);
+    } else {
+      return Vec3(0.f, 0.f, 0.f);
+    }
+  // Nothing is hit
   } else {
     Vec3 unit_direction = make_unit_vector(r.direction());
     // After making the ray's direction a unit vector, y-axis is in the range
@@ -69,12 +52,12 @@ Vec3 color(const Ray &r, Hitable *world) {
 }
 
 int main() {
-  int nx = 200;
-  int ny = 100;
-  int ns = 100; // Number of samples
+  int nx = 400;
+  int ny = 200;
+  int ns = 100;  // Number of samples
 
   std::ofstream image_file;
-  image_file.open("rendered_image_aliasing_gamma.ppm");
+  image_file.open("balls_different_materials_fuzzymetal.ppm");
 
   // PPM header
   image_file << "P3" << std::endl
@@ -82,11 +65,23 @@ int main() {
              << "255" << std::endl;
 
   // World and Objects
-  Sphere *s0 = new Sphere(Vec3(0.f, 0.f, -1.f), 0.5f);
-  Sphere *s1 = new Sphere(Vec3(0.f, -100.5f, -1.f), 100.f);
-  HitableList *world = new HitableList(2);
+  Sphere *s0 = new Sphere(Vec3(0.f, 0.f, -1.f),
+                          0.5f,
+                          new Lambertian(Vec3(0.8f, 0.3f, 0.3f)));
+  Sphere *s1 = new Sphere(Vec3(0.f, -100.5f, -1.f),
+                          100.f,
+                          new Lambertian(Vec3(0.8f, 0.8f, 0.f)));
+  Sphere *s2 = new Sphere(Vec3(1.f, 0.f, -1.f),
+                          0.5f,
+                          new Metal(Vec3(0.8f, 0.6f, 0.2f), 0.3f));
+  Sphere *s3 = new Sphere(Vec3(-1.f, 0.f, -1.f),
+                          0.5f,
+                          new Metal(Vec3(0.8f, 0.8f, 0.8f), 1.f));
+  HitableList *world = new HitableList;
   world->append(s0);
   world->append(s1);
+  world->append(s2);
+  world->append(s3);
 
   // Camera
   Camera cam;
@@ -99,14 +94,14 @@ int main() {
       // Antialiasing
       for (int s = 0; s < ns; s++) {
         // Get the sample parameters
-        float u = static_cast<float>(i + dist_01(eng)) / static_cast<float>(nx);
-        float v = static_cast<float>(j + dist_01(eng)) / static_cast<float>(ny);
+        float u = static_cast<float>((i + get_random_in_range(0.f, 1.f)) / nx);
+        float v = static_cast<float>((j + get_random_in_range(0.f, 1.f)) / ny);
 
         // Create the ray
         Ray r = cam.get_ray(u, v);
 
         // Accumulate color
-        col += color(r, world);
+        col += color(r, world, 0);
       }
 
       // Box sampling

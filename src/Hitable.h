@@ -4,14 +4,16 @@
 #ifndef SRC_HITABLE_H_
 #define SRC_HITABLE_H_
 
-#include <iostream>
-
 #include "Ray.h"
+
+// Forward declaration
+class Material;
 
 struct HitRecord {
   float t;
   Vec3 p;
   Vec3 normal;
+  Material *mat_ptr;
 };
 
 class Hitable {

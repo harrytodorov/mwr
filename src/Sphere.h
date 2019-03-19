@@ -7,14 +7,13 @@
 #include <iostream>
 
 #include "Hitable.h"
+#include "Material.h"
 
 class Sphere: public Hitable {
  public:
-  Sphere() {}
-  Sphere(const Vec3 &center, float radius) {
-    _center = center;
-    _radius = radius;
-  }
+  Sphere() = delete;
+  Sphere(const Vec3 &center, float radius, Material *m);
+  ~Sphere();
 
   inline Vec3 center() const { return _center; }
   inline float radius() const { return _radius; }
@@ -30,12 +29,26 @@ class Sphere: public Hitable {
     rec.t = t;
     rec.p = r.point_at_t(t);
     rec.normal = (rec.p - _center) / _radius;
+    rec.mat_ptr = _mat_ptr;
   }
 
  private:
   Vec3 _center;
   float _radius;
+  Material *_mat_ptr;
 };
+
+// _____________________________________________________________________________
+Sphere::Sphere(const Vec3 &center, float radius, Material *m) {
+    _center = center;
+    _radius = radius;
+    _mat_ptr = m;
+}
+
+// _____________________________________________________________________________
+Sphere::~Sphere() {
+  delete _mat_ptr;
+}
 
 // _____________________________________________________________________________
 bool Sphere::hit(const Ray &r,

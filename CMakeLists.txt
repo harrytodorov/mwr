@@ -6,11 +6,7 @@ project(ManyWeekendsRayTracer)
 
 # Enable C++17 standard and set the comiler options
 set(CMAKE_CXX_STANDARD 17)
-add_compile_options(-Wall -Wextra -pedantic -Werror)
-
-# Add Google's C++ lint
-include(include/cpplint.cmake)
-cpplint_add_subdirectory(src)
+add_compile_options(-Wall -Wextra -pedantic)
 
 set(SOURCES src/Main.cpp
             src/Vec3.h
@@ -18,7 +14,11 @@ set(SOURCES src/Main.cpp
             src/Hitable.h
             src/HitableList.h
             src/Sphere.h
-            src/Camera.h)
+            src/Camera.h
+            src/Material.h
+            src/Utils.h
+            src/Lambertian.h
+            src/Metal.h)
 
 # Create executable
 add_executable(ManyWeekendsRayTracer src/Main.cpp)
