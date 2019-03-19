@@ -26,6 +26,14 @@ Vec3 random_in_unit_sphere();
  */
 float get_random_in_range(float min, float max);
 
+/**
+ * Reflect an incoming ray i, which is not normalized. n is the normal at
+ * the hitpoint.
+ */
+Vec3 reflect(const Vec3 &i, const Vec3 &n) {
+  return i - 2*dot(i, n)*n;
+}
+
 // -----------------------------------------------------------------------------
 // Function declaration
 // -----------------------------------------------------------------------------
