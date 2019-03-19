@@ -14,7 +14,7 @@
 class Metal: public Material {
  public:
   Metal() = default;
-  explicit Metal(const Vec3 &albedo) : _albedo(albedo) {}
+  Metal(const Vec3 &albedo, float fuzz);
 
   virtual bool scatter(const Ray &r,
                        const HitRecord &rec,
@@ -22,7 +22,14 @@ class Metal: public Material {
                        Ray &scattered) const;
  private:
   Vec3 _albedo{0.f, 0.f, 0.f};
+  float _fuzz{0.f};
 };
+
+// _____________________________________________________________________________
+Metal::Metal(const Vec3 &albedo, float fuzz) {
+  _albedo = albedo;
+  _fuzz = fuzz < 1.f ? fuzz : 1.f;
+}
 
 // _____________________________________________________________________________
 bool Metal::scatter(const Ray &r,
@@ -31,7 +38,7 @@ bool Metal::scatter(const Ray &r,
                     Ray &scattered) const {
   Vec3 reflected = reflect(make_unit_vector(r.direction()), rec.normal);
   scattered.origin(rec.p);
-  scattered.direction(reflected);
+  scattered.direction(reflected + _fuzz*random_in_unit_sphere());
   attenuation = _albedo;
   bool same_direction = (dot(reflected, rec.normal) > 0.f);
   return same_direction;

@@ -52,12 +52,12 @@ Vec3 color(const Ray &r, Hitable *world, int depth) {
 }
 
 int main() {
-  int nx = 200;
-  int ny = 100;
+  int nx = 400;
+  int ny = 200;
   int ns = 100;  // Number of samples
 
   std::ofstream image_file;
-  image_file.open("balls_different_materials.ppm");
+  image_file.open("balls_different_materials_fuzzymetal.ppm");
 
   // PPM header
   image_file << "P3" << std::endl
@@ -73,10 +73,10 @@ int main() {
                           new Lambertian(Vec3(0.8f, 0.8f, 0.f)));
   Sphere *s2 = new Sphere(Vec3(1.f, 0.f, -1.f),
                           0.5f,
-                          new Metal(Vec3(0.8f, 0.6f, 0.2f)));
+                          new Metal(Vec3(0.8f, 0.6f, 0.2f), 0.3f));
   Sphere *s3 = new Sphere(Vec3(-1.f, 0.f, -1.f),
                           0.5f,
-                          new Metal(Vec3(0.8f, 0.8f, 0.8f)));
+                          new Metal(Vec3(0.8f, 0.8f, 0.8f), 1.f));
   HitableList *world = new HitableList;
   world->append(s0);
   world->append(s1);
