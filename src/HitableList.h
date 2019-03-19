@@ -9,7 +9,7 @@
 class HitableList: public Hitable {
  public:
   HitableList() = default;
-  HitableList(int capacity);
+  explicit HitableList(int capacity);
   HitableList(const HitableList &l) = delete;
   HitableList& operator=(const HitableList &l) = delete;
   ~HitableList();
