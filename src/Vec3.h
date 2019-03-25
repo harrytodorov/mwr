@@ -11,6 +11,7 @@ class Vec3 {
  public:
   Vec3() = default;
   Vec3(float e0, float e1, float e2) { _e[0] = e0; _e[1] = e1; _e[2] = e2; }
+  Vec3(const Vec3 &v2) { _e[0] = v2.x(); _e[1] = v2.y(); _e[2] = v2.z(); }
 
   // Location / Direction
   inline float x() const { return _e[0]; }
@@ -23,7 +24,7 @@ class Vec3 {
   inline float b() const { return _e[2]; }
 
   inline const Vec3& operator+() const { return *this; }
-  inline Vec3 operator-() { return Vec3(-_e[0], -_e[2], -_e[2]); }
+  inline Vec3 operator-() const { return Vec3(-_e[0], -_e[2], -_e[2]); }
   inline float operator[](int i) const { return _e[i]; }
   inline float& operator[](int i) { return _e[i]; }
 
