@@ -28,6 +28,8 @@ class Sphere: public Hitable {
                              HitRecord &rec) const {
     rec.t = t;
     rec.p = r.point_at_t(t);
+    // Be vary cautious! The normal would always point outwards of the sphere,
+    // even when the the hit is inside
     rec.normal = (rec.p - _center) / _radius;
     rec.mat_ptr = _mat_ptr;
   }

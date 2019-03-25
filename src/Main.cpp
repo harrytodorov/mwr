@@ -14,6 +14,7 @@
 #include "Utils.h"
 #include "Lambertian.h"
 #include "Metal.h"
+#include "Dialectic.h"
 
 // Definitions
 #define SHADOW_BIAS 0.001f
@@ -52,12 +53,12 @@ Vec3 color(const Ray &r, Hitable *world, int depth) {
 }
 
 int main() {
-  int nx = 400;
-  int ny = 200;
+  int nx = 200;
+  int ny = 100;
   int ns = 100;  // Number of samples
 
   std::ofstream image_file;
-  image_file.open("balls_different_materials_fuzzymetal.ppm");
+  image_file.open("balls_different_materials_fuzzymetal_dialectic.ppm");
 
   // PPM header
   image_file << "P3" << std::endl
@@ -67,7 +68,7 @@ int main() {
   // World and Objects
   Sphere *s0 = new Sphere(Vec3(0.f, 0.f, -1.f),
                           0.5f,
-                          new Lambertian(Vec3(0.8f, 0.3f, 0.3f)));
+                          new Lambertian(Vec3(0.1f, 0.2f, 0.5f)));
   Sphere *s1 = new Sphere(Vec3(0.f, -100.5f, -1.f),
                           100.f,
                           new Lambertian(Vec3(0.8f, 0.8f, 0.f)));
@@ -76,7 +77,7 @@ int main() {
                           new Metal(Vec3(0.8f, 0.6f, 0.2f), 0.3f));
   Sphere *s3 = new Sphere(Vec3(-1.f, 0.f, -1.f),
                           0.5f,
-                          new Metal(Vec3(0.8f, 0.8f, 0.8f), 1.f));
+                          new Dialectic(1.5f));
   HitableList *world = new HitableList;
   world->append(s0);
   world->append(s1);

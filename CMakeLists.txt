@@ -8,6 +8,9 @@ project(ManyWeekendsRayTracer)
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Wextra -pedantic)
 
+# # Enable adress sanitizer
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -g -O1")
+
 set(SOURCES src/Main.cpp
             src/Vec3.h
             src/Ray.h
@@ -18,7 +21,8 @@ set(SOURCES src/Main.cpp
             src/Material.h
             src/Utils.h
             src/Lambertian.h
-            src/Metal.h)
+            src/Metal.h
+            src/Dialectic.h)
 
 # Create executable
 add_executable(ManyWeekendsRayTracer src/Main.cpp)
