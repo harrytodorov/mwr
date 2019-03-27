@@ -30,14 +30,14 @@ bool Dialectic::scatter(const Ray &r,
   Vec3 refracted_direction;
   Vec3 normal = rec.normal;
   // One assumes there is always air between two surfaces
-  bool inside_medium = (dot(r.direction(), rec.normal) >= 0.f);
+  bool inside_medium = (dot(r.direction(), rec.normal) > 0.f);
   float n1;
   float n2;
   float reflection_coefficient;
   if (inside_medium) {
     n1 = _refraction_index;
     n2 = 1.0003f;
-    normal *= -1.f;
+    normal = -normal;
   } else {
     n1 = 1.0003f;
     n2 = _refraction_index;
@@ -59,7 +59,6 @@ bool Dialectic::scatter(const Ray &r,
   } else {
     scattered.origin(rec.p);
     scattered.direction(refracted_direction);
-
   }
   return true;
 }

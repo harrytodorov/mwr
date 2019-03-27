@@ -87,11 +87,11 @@ Vec3 reflect(const Vec3 &i, const Vec3 &n) {
 bool refract(const Vec3 &i, const Vec3 &n, float n1, float n2, Vec3 &t) {
   float n_it = n1 / n2;
   Vec3 ui = make_unit_vector(i);
-  float cos_i = dot(ui, n);
+  float cos_i = -dot(ui, n);
   float discriminant = 1.f - n_it * n_it * (1.f - cos_i*cos_i);
   // Discriminant <= 0: there is refraction, otherwise total internal refraction
   if (discriminant <= 0.f) return false;
-  t = n_it * ui - (n_it*cos_i + sqrt(discriminant)) * n;
+  t = n_it * ui - (n_it*cos_i - sqrt(discriminant)) * n;
   return true;
 }
 
@@ -99,9 +99,15 @@ bool refract(const Vec3 &i, const Vec3 &n, float n1, float n2, Vec3 &t) {
 float schlick(const Vec3 &i, const Vec3 &n, float n1, float n2) {
   // Compute supplementary
   float r0 = (n1 - n2) / (n1 + n2);
-  r0 *= r0;
-  float cosine = dot(-i, n);
-  
+  r0 = r0 * r0;
+
+  // Compute the cosine
+  float cosine = -dot(make_unit_vector(i), n);
+  if (n1 > n2) {
+    float n_it = n1 / n2;
+    cosine = sqrt(1.f - n_it*n_it * (1.f - cosine*cosine));
+  }
+
   // Compute reflection coefficient
   return r0 + (1.f - r0)*pow((1 - cosine), 5);
 }
