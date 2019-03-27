@@ -58,6 +58,7 @@ Camera::Camera(const Vec3 &lookfrom,
   _vertical =  2.f * half_height*v;
 }
 
+
 // _____________________________________________________________________________
 Ray Camera::get_ray(float s, float t) const {
   return Ray(_origin,
