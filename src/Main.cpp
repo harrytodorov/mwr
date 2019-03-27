@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>  // Output to a file
+#include <sstream>  // ostringstream
 #include <cmath>  // sqrt()
 #include <limits>  // Maxfloat
 
@@ -52,40 +53,70 @@ Vec3 color(const Ray &r, Hitable *world, int depth) {
   }
 }
 
-int main() {
-  int nx = 200;
-  int ny = 100;
-  int ns = 100;  // Number of samples
+  // // Construct sample scene
+  // // cos(PI/4) ~ 0.70..
+  // float radius = static_cast<float>(cos(M_PI_4));
+  // Sphere *blue_sphere = new Sphere(Vec3(-radius, 0.f, -1.f),
+  //                                 radius,
+  //                                 new Lambertian(Vec3(0.f, 0.f, 1.f)));
+  // Sphere *red_sphere = new Sphere(Vec3(radius, 0.f, -1.f),
+  //                                 radius,
+  //                                 new Lambertian(Vec3(1.f, 0.f, 0.f)));
+  // world->append(blue_sphere);
+  // world->append(red_sphere);
 
+int main() {
+  int nx = 640;
+  int ny = 480;
+  int ns = 10;  // Number of samples
+
+  std::ostringstream fileName;
   std::ofstream image_file;
-  image_file.open("balls_different_materials_fuzzymetal_dialectic.ppm");
+
+// TODO(htv): test material properties
+  // World and Objects
+  Sphere *sFloor = new Sphere(Vec3(0.f, -100.5f, -1.f),
+                          100.f,
+                          new Lambertian(Vec3(0.5f, 0.5f, 0.5f)));
+  Sphere *sPinkish = new Sphere(Vec3(0.f, 0.f, 1.f),
+                          0.5f,
+                          new Lambertian(Vec3(0.8f, 0.3f, 0.3f)));
+  Sphere *sGoldish = new Sphere(Vec3(1.f, 0.f, 1.f),
+                               0.5f,
+                               new Metal(Vec3(1.f, 0.71f, 0.29f), 0.8f));
+  Sphere *sSilverish = new Sphere(Vec3(-1.f, 0.f, 1.f),
+                          0.5f,
+                          new Metal(Vec3(0.95f, 0.93f, 0.88f), 0.9f));
+  Sphere *sWaterish = new Sphere(Vec3(-2.f, 0.f, 1.f),
+                                 0.5f,
+                                 new Dialectic(1.52f));
+
+  HitableList *world = new HitableList;
+  world->append(sPinkish);
+  world->append(sFloor);
+  world->append(sGoldish);
+  world->append(sSilverish);
+  world->append(sWaterish);
+  // world->append(sWaterish2);
+
+  // Todo: positionable camera
+  float ar = static_cast<float>(nx) / static_cast<float>(ny);
+  Vec3 lookfrom(0.f, 2.f, -2.f);
+  Vec3 lookat(0.f, 0.f, 0.f);
+  Vec3 up(0.f, 1.f, 0.f);
+
+  // Camera
+  Camera cam(lookfrom, lookat, up, 90.f, ar);
+
+  // File naming
+  fileName << "without_normalization.ppm";
+  image_file.open(fileName.str());
+  fileName.clear();
 
   // PPM header
   image_file << "P3" << std::endl
-             << nx << " " << ny << std::endl
-             << "255" << std::endl;
-
-  // World and Objects
-  Sphere *s0 = new Sphere(Vec3(0.f, 0.f, -1.f),
-                          0.5f,
-                          new Lambertian(Vec3(0.1f, 0.2f, 0.5f)));
-  Sphere *s1 = new Sphere(Vec3(0.f, -100.5f, -1.f),
-                          100.f,
-                          new Lambertian(Vec3(0.8f, 0.8f, 0.f)));
-  Sphere *s2 = new Sphere(Vec3(1.f, 0.f, -1.f),
-                          0.5f,
-                          new Metal(Vec3(0.8f, 0.6f, 0.2f), 0.3f));
-  Sphere *s3 = new Sphere(Vec3(-1.f, 0.f, -1.f),
-                          0.5f,
-                          new Dialectic(1.5f));
-  HitableList *world = new HitableList;
-  world->append(s0);
-  world->append(s1);
-  world->append(s2);
-  world->append(s3);
-
-  // Camera
-  Camera cam;
+            << nx << " " << ny << std::endl
+            << "255" << std::endl;
 
   // The actual image pixel
   for (int j = ny - 1; j >= 0; j--) {
