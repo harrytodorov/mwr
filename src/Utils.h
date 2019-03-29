@@ -15,12 +15,21 @@
 
 /**
  * Pick a random point in the unit sphere using the rejection method.
- * Algoritmh:
+ * Algorithm:
  * 1. Generate a random point inside the unit cube just with x,y,z having
  *    random values between [-1, 1).
  * 2. Generate new points while the squred length of the point is larger than 1
  */
 Vec3 random_in_unit_sphere();
+
+/**
+ * Pick a random point in the unit dist using the rejection method.
+ * Algorithm:
+ * 1. Generate a random point inside the unit square just with x,y having
+ *    random values between [-1, 1).
+ * 2. Generate new points while the squred length of the point is larger than 1
+ */
+void random_in_unit_disc(float &x, float &y);
 
 /**
  * Generate a random number in the range [min, max)
@@ -70,6 +79,13 @@ Vec3 random_in_unit_sphere() {
     point[2] = get_random_in_range(-1.f, 1.f);
   } while (point.squared_length() >= 1.f);
   return point;
+}
+
+void random_in_unit_disc(float &x, float &y) {
+  do {
+    x = get_random_in_range(-1.f, 1.f);
+    y = get_random_in_range(-1.f, 1.f);
+  } while (x*x + y*y >= 1.f);
 }
 
 // _____________________________________________________________________________

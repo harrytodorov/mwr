@@ -8,6 +8,7 @@
 
 #include "Ray.h"
 #include "Vec3.h"
+#include "Utils.h"
 
 class Camera {
  public:
@@ -23,46 +24,66 @@ class Camera {
   Camera(const Vec3 &lookfrom,
          const Vec3 &lookat,
          const Vec3 &up_vector,
-         float vertical_fov, float aspect_ratio);
+         float vertical_fov, float aspect_ratio,
+         float lens_radius, float focus_distance);
 
   inline Ray get_ray(float u, float v) const;
+
  private:
   Vec3 _lower_left_corner;
   Vec3 _horizontal;
   Vec3 _vertical;
   Vec3 _origin;
+  Vec3 _u, _v, _w;
+  float _lens_radius;  // lens radius
+  float _focus_distance;
 };
 
 // _____________________________________________________________________________
 Camera::Camera(const Vec3 &lookfrom,
                const Vec3 &lookat,
                const Vec3 &up_vector,
-               float vertical_fov, float aspect_ratio) {
+               float vertical_fov, float aspect_ratio,
+               float lens_radius, float focus_distance) {
   // Convert the field of view to radians
   float theta = vertical_fov * (M_PI / 180.f);
- 
+
   // Compute the half height & half width
   float half_height = static_cast<float>(tan(theta / 2.f));
   float half_width = aspect_ratio * half_height;
 
+  // Set lens radius and focus distance
+  _lens_radius = lens_radius;
+  _focus_distance = focus_distance;
+
   // Compute camera's orthonormal basis
-  Vec3 u, v, w;
-  w = make_unit_vector(lookfrom - lookat);
-  u = make_unit_vector(cross(up_vector, w));
-  v = cross(w, u);
+  _w = make_unit_vector(lookfrom - lookat);
+  _u = make_unit_vector(cross(up_vector, _w));
+  _v = cross(_w, _u);
 
   // Image plane vectors
   _origin = lookfrom;
-  _lower_left_corner = _origin - half_width*u - half_height*v - w;
-  _horizontal = 2.f * half_width*u;
-  _vertical =  2.f * half_height*v;
+  _lower_left_corner = _origin
+                       - half_width*_focus_distance*_u
+                       - half_height*_focus_distance*_v
+                       - _focus_distance*_w;
+  _horizontal = 2.f * half_width*_focus_distance*_u;
+  _vertical =  2.f * half_height*_focus_distance*_v;
 }
 
 
 // _____________________________________________________________________________
 Ray Camera::get_ray(float s, float t) const {
-  return Ray(_origin,
-             _lower_left_corner + s*_horizontal + t*_vertical - _origin);
+  // Get point on the unit disc
+  float lens_x, lens_y;
+  random_in_unit_disc(lens_x, lens_y);
+
+  // Compute offset vector
+  Vec3 offset = lens_x*_lens_radius*_u + lens_y*_lens_radius*_v;
+
+  return Ray(_origin + offset,
+             _lower_left_corner + s*_horizontal + t*_vertical
+             - _origin - offset);
 }
 
 #endif  // SRC_CAMERA_H_
