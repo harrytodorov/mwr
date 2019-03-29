@@ -8,8 +8,9 @@ project(ManyWeekendsRayTracer)
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Wextra -pedantic)
 
-# # Enable adress sanitizer
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -g -O1")
+# Enable adress sanitizer
+add_compile_options("-fsanitize=address")
+link_libraries("-fsanitize=address -fno-omit-frame-pointer")
 
 set(SOURCES src/Main.cpp
             src/Vec3.h
