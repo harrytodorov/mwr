@@ -45,26 +45,25 @@ Vec3 reflect(const Vec3 &i, const Vec3 &n);
 /**
  * Refract an incoming ray i, which is not normalized. 
  * n is the normal at the hitpoint.
- * n1 is the refraction index of the medium from which the incoming ray is
- * coming.
- * n2 is the refraction index of the medium into which the incoming ray going
- * to.
+ * n_it is the ration between the refraction index of the first and the second
+ * medium.
  * t is the transmitted/refracted vector.
  */
-bool refract(const Vec3 &i, const Vec3 &n, float n1, float n2, Vec3 &t);
+bool refract(const Vec3 &i, const Vec3 &n, float n_it, Vec3 &t);
 
 /**
  * Compute the reflection coefficient according to the approximation of the
  * Fresnel equations by Christophe Schlick.
  * i is the incoming ray.
  * n is the normal at the hitpoint.
+ * ri is the larger refraction index
  * n1 is the refraction index of the medium from which the incoming ray is
  * coming.
  * n2 is the refraction index of the medium into which the incoming ray going
  * to.
-
+ * in gives hints to the function how to compute the cosine
  */
-float schlick(Vec3 &i, Vec3 &n, float n1, float n2);
+float schlick(const Vec3 &i, const Vec3 &n, float n1, float n2, bool in);
 
 // -----------------------------------------------------------------------------
 // Function declaration
@@ -100,32 +99,32 @@ Vec3 reflect(const Vec3 &i, const Vec3 &n) {
 }
 
 // _____________________________________________________________________________
-bool refract(const Vec3 &i, const Vec3 &n, float n1, float n2, Vec3 &t) {
-  float n_it = n1 / n2;
+bool refract(const Vec3 &i, const Vec3 &n, float n_it, Vec3 &t) {
   Vec3 ui = make_unit_vector(i);
-  float cos_i = -dot(ui, n);
-  float discriminant = 1.f - n_it * n_it * (1.f - cos_i*cos_i);
+  float cos_i = dot(ui, n);
+  float discriminant = 1.f - n_it*n_it * (1.f - cos_i*cos_i);
   // Discriminant <= 0: there is refraction, otherwise total internal refraction
   if (discriminant <= 0.f) return false;
-  t = n_it * ui - (n_it*cos_i - sqrt(discriminant)) * n;
+  t = n_it*(ui - cos_i*n) - sqrt(discriminant)*n;
   return true;
 }
 
 // _____________________________________________________________________________
-float schlick(const Vec3 &i, const Vec3 &n, float n1, float n2) {
+float schlick(const Vec3 &i, const Vec3 &n, float ri, bool in) {
   // Compute supplementary
-  float r0 = (n1 - n2) / (n1 + n2);
+  float r0 = (1.0003f - ri) / (1.0003f + ri);
   r0 = r0 * r0;
 
   // Compute the cosine
-  float cosine = -dot(make_unit_vector(i), n);
-  if (n1 > n2) {
-    float n_it = n1 / n2;
-    cosine = sqrt(1.f - n_it*n_it * (1.f - cosine*cosine));
+  float cosine = dot(i, n) / i.length();
+  if (in) {
+    cosine = sqrt(1.f - ri*ri * (1.f - cosine*cosine));
+  } else {
+    cosine = -cosine;
   }
 
   // Compute reflection coefficient
-  return r0 + (1.f - r0)*pow((1 - cosine), 5);
+  return r0 + (1.f - r0)*pow((1.f - cosine), 5);
 }
 
 #endif  // SRC_UTILS_H_
