@@ -2,10 +2,11 @@
 // Author: Haralambi Todorov <harrytodorov@gmail.com>
 
 #include <iostream>
-#include <fstream>  // Output to a file
+#include <fstream>  // output to a file
 #include <sstream>  // ostringstream
-#include <cmath>  // sqrt()
-#include <limits>  // Maxfloat
+#include <cmath>    // sqrt
+#include <limits>   // maxfloat
+#include <chrono>   // clock
 
 #include "Vec3.h"
 #include "Ray.h"
@@ -53,90 +54,47 @@ Vec3 color(const Ray &r, Hitable *world, int depth) {
   }
 }
 
-  // // Construct sample scene
-  // // cos(PI/4) ~ 0.70..
-  // float radius = static_cast<float>(cos(M_PI_4));
-  // Sphere *blue_sphere = new Sphere(Vec3(-radius, 0.f, -1.f),
-  //                                 radius,
-  //                                 new Lambertian(Vec3(0.f, 0.f, 1.f)));
-  // Sphere *red_sphere = new Sphere(Vec3(radius, 0.f, -1.f),
-  //                                 radius,
-  //                                 new Lambertian(Vec3(1.f, 0.f, 0.f)));
-  // world->append(blue_sphere);
-  // world->append(red_sphere);
-
-int main() {
-  int nx = 640;
-  int ny = 480;
-  int ns = 10;  // Number of samples
-
-  std::ostringstream fileName;
+/**
+ * Render with the provided camera/objects and save it to a file with
+ * the provided out_file name.
+ * nx specifies the number of pixels along the width,
+ * ny specifies the number of pixels along the height, and
+ * ns provide the number of randomly shot samples per pixel (for antialiasing).
+ * Box filter is applied.
+ * Gamma correction is applied to the output image.
+ */
+void render_scene(Camera c,
+                  Hitable* world,
+                  const char *out_file,
+                  int nx, int ny, int ns) {
+  // Create file handler
   std::ofstream image_file;
-
-// TODO(htv): test material properties
-  // World and Objects
-  Sphere *sFloor = new Sphere(Vec3(0.f, -100.5f, -1.f),
-                          100.f,
-                          new Lambertian(Vec3(0.5f, 0.5f, 0.5f)));
-  Sphere *sPinkish = new Sphere(Vec3(0.f, 0.f, 1.f),
-                          0.5f,
-                          new Lambertian(Vec3(0.8f, 0.3f, 0.3f)));
-  Sphere *sGoldish = new Sphere(Vec3(1.f, 0.f, 1.f),
-                               0.5f,
-                               new Metal(Vec3(1.f, 0.71f, 0.29f), 0.8f));
-  Sphere *sSilverish = new Sphere(Vec3(-1.f, 0.f, 1.f),
-                          0.5f,
-                          new Metal(Vec3(0.95f, 0.93f, 0.88f), 0.9f));
-  Sphere *sWaterish = new Sphere(Vec3(-2.f, 0.f, 1.f),
-                                 0.5f,
-                                 new Dialectic(1.52f));
-
-  HitableList *world = new HitableList;
-  world->append(sPinkish);
-  world->append(sFloor);
-  world->append(sGoldish);
-  world->append(sSilverish);
-  world->append(sWaterish);
-  // world->append(sWaterish2);
-
-  // Todo: positionable camera
-  float ar = static_cast<float>(nx) / static_cast<float>(ny);
-  Vec3 lookfrom(0.f, 2.f, -2.f);
-  Vec3 lookat(0.f, 0.f, 0.f);
-  Vec3 up(0.f, 1.f, 0.f);
-
-  // Camera
-  Camera cam(lookfrom, lookat, up, 90.f, ar);
-
-  // File naming
-  fileName << "without_normalization.ppm";
-  image_file.open(fileName.str());
-  fileName.clear();
+  image_file.open(out_file);
 
   // PPM header
   image_file << "P3" << std::endl
             << nx << " " << ny << std::endl
             << "255" << std::endl;
 
-  // The actual image pixel
+  // Iterate over the pixels
   for (int j = ny - 1; j >= 0; j--) {
     for (int i = 0; i < nx; i++) {
       Vec3 col{0.f, 0.f, 0.f};
 
-      // Antialiasing
+      // Iterate over the samples
       for (int s = 0; s < ns; s++) {
         // Get the sample parameters
         float u = static_cast<float>((i + get_random_in_range(0.f, 1.f)) / nx);
         float v = static_cast<float>((j + get_random_in_range(0.f, 1.f)) / ny);
 
         // Create the ray
-        Ray r = cam.get_ray(u, v);
+        Ray r = c.get_ray(u, v);
 
         // Accumulate color
         col += color(r, world, 0);
       }
 
-      // Box sampling
+      // Apply antialiasing using box filter
       col /= static_cast<float>(ns);
 
       // Gamma correction
@@ -154,6 +112,138 @@ int main() {
     }
   }
 
-  // Close file
+  // Close file handler
   image_file.close();
+}
+
+Hitable* cover_scene() {
+  // Number of objects
+  int n = 500;
+
+  HitableList *world = new HitableList(n+1);
+
+  Sphere *sFloor = new Sphere(Vec3(0.f, -1000.f, 0.f),
+                              1000.f,
+                              new Lambertian(Vec3(0.5f, 0.5f, 0.5f)));
+  world->append(sFloor);
+
+  // Add small spheres
+  for (int a = -11; a < 11; a++) {
+    for (int b = -11; b < 11; b++) {
+      float choose_material = get_random_in_range(0.f, 1.f);
+      float center_x = a+0.9f*get_random_in_range(0.f, 1.f);
+      float center_z = b+0.9f*get_random_in_range(0.f, 1.f);
+      Vec3 center(center_x, 0.2f, center_z);
+      if ((center - Vec3(4.f, 0.2f, 0.f)).length() > 0.9f) {
+        if (choose_material < 0.8f) {          // diffuse
+          float rand_r = get_random_in_range(0.f, 1.f)
+                         * get_random_in_range(0.f, 1.f);
+          float rand_g = get_random_in_range(0.f, 1.f)
+                         * get_random_in_range(0.f, 1.f);
+          float rand_b = get_random_in_range(0.f, 1.f)
+                         * get_random_in_range(0.f, 1.f);
+          Sphere *sDiffuse = new Sphere(center, 0.2f,
+                                        new Lambertian(Vec3(rand_r,
+                                                            rand_g,
+                                                            rand_b)));
+          world->append(sDiffuse);
+        } else if (choose_material < 0.95f) {  // metal
+          float rand_r = get_random_in_range(0.5f, 1.f);
+          float rand_g = get_random_in_range(0.5f, 1.f);
+          float rand_b = get_random_in_range(0.5f, 1.f);
+          float rand_fuzz = get_random_in_range(0.f, 1.f);
+          Sphere *sMetal = new Sphere(center, 0.2f,
+                                      new Metal(Vec3(rand_r, rand_g, rand_b),
+                                                rand_fuzz));
+          world->append(sMetal);
+        } else {                               // glass
+          Sphere *sGlass = new Sphere(center, 0.2, new Dialectic(1.52f));
+          world->append(sGlass);
+        }
+      }
+    }
+  }
+
+  // Add 3 big spheres
+  Sphere *sBigGlass = new Sphere(Vec3(0.f, 1.f, 0.f),
+                                 1.f,
+                                 new Dialectic(1.52f));
+  Sphere *sBigDiffuse = new Sphere(Vec3(-4.f, 1.f, 0.f),
+                                   1.f,
+                                   new Lambertian(Vec3(0.4f, 0.2f, 0.1f)));
+  Sphere *sBigMetal = new Sphere(Vec3(4.f, 1.f, 0.f),
+                                 1.f,
+                                 new Metal(Vec3(0.7f, 0.6f, 0.5f), 0.f));
+  world->append(sBigGlass);
+  world->append(sBigDiffuse);
+  world->append(sBigMetal);
+
+  return world;
+}
+
+// // Construct sample scene
+// // cos(PI/4) ~ 0.70..
+// float radius = static_cast<float>(cos(M_PI_4));
+// Sphere *blue_sphere = new Sphere(Vec3(-radius, 0.f, -1.f),
+//                                 radius,
+//                                 new Lambertian(Vec3(0.f, 0.f, 1.f)));
+// Sphere *red_sphere = new Sphere(Vec3(radius, 0.f, -1.f),
+//                                 radius,
+//                                 new Lambertian(Vec3(1.f, 0.f, 0.f)));
+// world->append(blue_sphere);
+// world->append(red_sphere);
+
+// Sphere *sFloor = new Sphere(Vec3(0.f, -100.5f, -1.f),
+//                         100.f,
+//                         new Lambertian(Vec3(0.5f, 0.5f, 0.5f)));
+// Sphere *sPinkish = new Sphere(Vec3(0.f, 0.f, 1.f),
+//                         0.5f,
+//                         new Lambertian(Vec3(0.8f, 0.3f, 0.3f)));
+// Sphere *sGoldish = new Sphere(Vec3(1.f, 0.f, 1.f),
+//                              0.5f,
+//                              new Metal(Vec3(1.f, 0.71f, 0.29f), 0.8f));
+// Sphere *sSilverish = new Sphere(Vec3(-1.f, 0.f, 1.f),
+//                         0.5f,
+//                         new Metal(Vec3(0.95f, 0.93f, 0.88f), 0.9f));
+// Sphere *sWaterish = new Sphere(Vec3(-2.f, 0.f, 1.f),
+//                                0.5f,
+//                                new Dialectic(1.52f));
+
+// HitableList *world = new HitableList;
+// world->append(sPinkish);
+// world->append(sFloor);
+// world->append(sGoldish);
+// world->append(sSilverish);
+// world->append(sWaterish);
+
+int main() {
+  int nx = 1280;
+  int ny = 720;
+  int ns = 100;  // Number of samples
+
+  Vec3 lookfrom(13.f, 2.f, 3.f);
+  Vec3 lookat(0.f, 0.f, 0.f);
+  Vec3 up(0.f, 1.f, 0.f);
+  float ar = static_cast<float>(nx) / static_cast<float>(ny);
+  float lens_radius = 0.05f;
+  float distance_to_focus = 10.f;
+
+  // Camera
+  Camera cam(lookfrom, lookat, up, 20.f, ar, lens_radius, distance_to_focus);
+
+  // File naming
+  std::ostringstream fileName;
+  fileName << "cover_floor+bigS+smallS.ppm";
+  std::string fileNameStr = fileName.str();
+
+  // Measure the rendering time
+  auto start = std::chrono::steady_clock::now();
+
+  // Render scene and output image
+  render_scene(cam, cover_scene(), fileNameStr.c_str(), nx, ny, ns);
+
+  auto end = std::chrono::steady_clock::now();
+  auto duration =
+       std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+  std::cout << "Rendered in " << duration << " seconds." << std::endl;
 }
