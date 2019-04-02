@@ -5,6 +5,7 @@
 #define SRC_HITABLELIST_H_
 
 #include "Hitable.h"
+#include "AABB.h"
 
 class HitableList: public Hitable {
  public:
@@ -22,6 +23,7 @@ class HitableList: public Hitable {
   void clear(Hitable **array);
 
   bool hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const;
+  bool bounding_box(AABB &box) const;
 
  private:
   int _size{0};
@@ -104,6 +106,23 @@ bool HitableList::hit(const Ray &r,
     }
   }
   return did_hit;
+}
+
+// _____________________________________________________________________________
+bool HitableList::bounding_box(AABB &box) const {
+  if (_size < 1) return false;
+
+  // Get the bounding box of the first element
+  AABB temp_box;
+
+  for (int i = 0; i < _size; i++) {
+    if (_data[i]->bounding_box(temp_box)) {
+      box = surrounding_box(temp_box, box);
+    } else {
+      return false;
+    }
+  }
+  return true;
 }
 
 #endif  // SRC_HITABLELIST_H_

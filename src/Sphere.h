@@ -8,6 +8,7 @@
 
 #include "Hitable.h"
 #include "Material.h"
+#include "AABB.h"
 
 class Sphere: public Hitable {
  public:
@@ -22,6 +23,8 @@ class Sphere: public Hitable {
                    float t_min,
                    float t_max,
                    HitRecord &rec) const;
+
+  virtual bool bounding_box(AABB &box) const;
 
   inline void set_hit_record(const float t,
                              const Ray &r,
@@ -90,6 +93,14 @@ bool Sphere::hit(const Ray &r,
   }
 
   return false;
+}
+
+// _____________________________________________________________________________
+bool Sphere::bounding_box(AABB &box) const {
+  Vec3 radius_vec(_radius, _radius, _radius);
+  box = AABB(_center - radius_vec,
+             _center + radius_vec);
+  return true;
 }
 
 // _____________________________________________________________________________
