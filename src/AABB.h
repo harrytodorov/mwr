@@ -5,7 +5,7 @@
 #define SRC_AABB_H_
 
 #include <limits>  // min/max float
-#include <algorithm>  // swap
+#include <utility>  // swap
 
 #include "Vec3.h"
 #include "Ray.h"
@@ -79,9 +79,9 @@ inline AABB surrounding_box(AABB &a, AABB &b) {
   Vec3 small(minf(a.min().x(), b.min().x()),
              minf(a.min().y(), b.min().y()),
              minf(a.min().z(), b.min().z()));
-  Vec3 big  (maxf(a.max().x(), b.max().x()),
-             maxf(a.max().y(), b.max().y()),
-             maxf(a.max().z(), b.max().z()));
+  Vec3 big(maxf(a.max().x(), b.max().x()),
+           maxf(a.max().y(), b.max().y()),
+           maxf(a.max().z(), b.max().z()));
   return AABB(small, big);
 }
 

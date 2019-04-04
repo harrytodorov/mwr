@@ -121,7 +121,8 @@ int aabb_x_cmp(const void *a, const void *b) {
   // Sort by x ascending
   if (a_box.min().x() - b_box.min().x() < 0.f) return -1;
   else if (a_box.min().x() - b_box.min().x() > 0.f) return 1;
-  else return 0;
+  else
+    return 0;
 }
 
 // _____________________________________________________________________________
@@ -141,7 +142,8 @@ int aabb_y_cmp(const void *a, const void *b) {
   // Sort by x ascending
   if (a_box.min().y() - b_box.min().y() < 0.f) return -1;
   else if (a_box.min().y() - b_box.min().y() > 0.f) return 1;
-  else return 0;
+  else
+    return 0;
 }
 
 // _____________________________________________________________________________
@@ -161,7 +163,8 @@ int aabb_z_cmp(const void *a, const void *b) {
   // Sort by x ascending
   if (a_box.min().z() - b_box.min().z() < 0.f) return -1;
   else if (a_box.min().z() - b_box.min().z() > 0.f) return 1;
-  else return 0;
+  else
+    return 0;
 }
 
 // _____________________________________________________________________________

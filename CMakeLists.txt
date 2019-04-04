@@ -25,7 +25,10 @@ set(SOURCES src/Main.cpp
             src/Metal.h
             src/Dialectic.h
             src/AABB.h
-            src/BVH.h)
+            src/BVH.h
+            src/Texture.h
+            src/SolidTexture.h
+            src/CheckerTexture.h)
 
 # Create executable
 add_executable(ManyWeekendsRayTracer src/Main.cpp)

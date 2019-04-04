@@ -18,6 +18,7 @@
 #include "Metal.h"
 #include "Dialectic.h"
 #include "BVH.h"
+#include "SolidTexture.h"
 
 // Definitions
 #define SHADOW_BIAS 0.001f
@@ -125,7 +126,7 @@ Hitable* cover_scene() {
 
   Sphere *sFloor = new Sphere(Vec3(0.f, -1000.f, 0.f),
                               1000.f,
-                              new Lambertian(Vec3(0.5f, 0.5f, 0.5f)));
+                              new Lambertian(new SolidTexture(Vec3(0.5f, 0.5f, 0.5f))));
   world->append(sFloor);
 
   // Add small spheres
@@ -143,10 +144,9 @@ Hitable* cover_scene() {
                          * get_random_in_range(0.f, 1.f);
           float rand_b = get_random_in_range(0.f, 1.f)
                          * get_random_in_range(0.f, 1.f);
-          Sphere *sDiffuse = new Sphere(center, 0.2f,
-                                        new Lambertian(Vec3(rand_r,
-                                                            rand_g,
-                                                            rand_b)));
+          Sphere *sDiffuse = new Sphere(center,
+                                        0.2f,
+                                        new Lambertian(new SolidTexture(Vec3(rand_r, rand_g, rand_b))));
           world->append(sDiffuse);
         } else if (choose_material < 0.95f) {  // metal
           float rand_r = get_random_in_range(0.5f, 1.f);
@@ -171,7 +171,7 @@ Hitable* cover_scene() {
                                  new Dialectic(1.52f));
   Sphere *sBigDiffuse = new Sphere(Vec3(-4.f, 1.f, 0.f),
                                    1.f,
-                                   new Lambertian(Vec3(0.4f, 0.2f, 0.1f)));
+                                   new Lambertian(new SolidTexture(Vec3(0.4f, 0.2f, 0.1f))));
   Sphere *sBigMetal = new Sphere(Vec3(4.f, 1.f, 0.f),
                                  1.f,
                                  new Metal(Vec3(0.7f, 0.6f, 0.5f), 0.f));
@@ -196,10 +196,10 @@ Hitable* cover_scene() {
 Hitable* some_spheres() {
   Sphere *sFloor = new Sphere(Vec3(3.f, 0, 0.f),
                           0.5f,
-                          new Lambertian(Vec3(0.5f, 0.5f, 0.5f)));
+                          new Lambertian(new SolidTexture(Vec3(0.5f, 0.5f, 0.5f))));
   Sphere *sPinkish = new Sphere(Vec3(0.f, 0.f, 0.f),
                           0.5f,
-                          new Lambertian(Vec3(0.8f, 0.3f, 0.3f)));
+                          new Lambertian(new SolidTexture(Vec3(0.8f, 0.3f, 0.3f))));
   Sphere *sGoldish = new Sphere(Vec3(-3.f, 0.f, 1.f),
                               0.5f,
                               new Metal(Vec3(1.f, 0.71f, 0.29f), 0.8f));
@@ -236,10 +236,10 @@ Hitable* some_spheres() {
 // float radius = static_cast<float>(cos(M_PI_4));
 // Sphere *blue_sphere = new Sphere(Vec3(-radius, 0.f, -1.f),
 //                                 radius,
-//                                 new Lambertian(Vec3(0.f, 0.f, 1.f)));
+//                                 new Lambertian(new SolidTexture(Vec3(0.f, 0.f, 1.f)));
 // Sphere *red_sphere = new Sphere(Vec3(radius, 0.f, -1.f),
 //                                 radius,
-//                                 new Lambertian(Vec3(1.f, 0.f, 0.f)));
+//                                 new Lambertian(new SolidTexture(Vec3(1.f, 0.f, 0.f)));
 // world->append(blue_sphere);
 // world->append(red_sphere);
 
@@ -247,7 +247,7 @@ Hitable* some_spheres() {
 int main() {
   int nx = 640;
   int ny = 480;
-  int ns = 100;  // Number of samples
+  int ns = 1;  // Number of samples
 
   Vec3 lookfrom(13.f, 2.f, 3.f);
   Vec3 lookat(0.f, 0.f, 0.f);
@@ -268,7 +268,7 @@ int main() {
   auto start = std::chrono::steady_clock::now();
 
   // Render scene and output image
-  render_scene(cam, cover_scene(), fileNameStr.c_str(), nx, ny, ns);
+  render_scene(cam, some_spheres(), fileNameStr.c_str(), nx, ny, ns);
 
   auto end = std::chrono::steady_clock::now();
   auto duration =

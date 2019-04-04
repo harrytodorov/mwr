@@ -38,7 +38,8 @@ BVH::BVH(HitableList *l, int min_idx, int max_idx) {
   // Choose axis for split
   int axis = static_cast<int>(get_random_in_range(0.f, 3.f));
   // std::cout << "axis: " << axis << std::endl;
-  // std::cout << "sorting: [" << min_idx << ", " << max_idx << ")" << std::endl;
+  // std::cout << "sorting: [" << min_idx << ", " << max_idx << ")"
+  //           << std::endl;
 
   // Sort by the axis
   l->sort_in_range(axis, _range_min, _range_max);
