@@ -15,6 +15,7 @@ class CheckerTexture: public Texture {
   CheckerTexture(Texture *t0, Texture *t1, float i) : _even(t0),
                                                       _odd(t1),
                                                       _interval(i) {}
+  ~CheckerTexture();
 
   virtual Vec3 value(float u, float v, const Vec3 &p) const;
  private:
@@ -22,6 +23,11 @@ class CheckerTexture: public Texture {
   Texture *_odd;
   float _interval;
 };
+
+CheckerTexture::~CheckerTexture() {
+  delete _even;
+  delete _odd;
+}
 
 // _____________________________________________________________________________
 Vec3 CheckerTexture::value(float u, float v, const Vec3 &p) const {

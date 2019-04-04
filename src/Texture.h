@@ -8,6 +8,8 @@
 
 class Texture {
  public:
+  Texture() {}
+  virtual ~Texture() {}
   virtual Vec3 value(float u, float v, const Vec3 &p) const = 0;
 };
 
