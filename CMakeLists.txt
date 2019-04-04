@@ -24,7 +24,8 @@ set(SOURCES src/Main.cpp
             src/Lambertian.h
             src/Metal.h
             src/Dialectic.h
-            src/AABB.h)
+            src/AABB.h
+            src/BVH.h)
 
 # Create executable
 add_executable(ManyWeekendsRayTracer src/Main.cpp)
