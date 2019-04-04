@@ -17,10 +17,11 @@
 #include "Lambertian.h"
 #include "Metal.h"
 #include "Dialectic.h"
+#include "BVH.h"
 
 // Definitions
 #define SHADOW_BIAS 0.001f
-#define RECURSION_DEPTH 50
+#define RECURSION_DEPTH 4
 
 Vec3 color(const Ray &r, Hitable *world, int depth) {
   HitRecord rec;
@@ -178,7 +179,56 @@ Hitable* cover_scene() {
   world->append(sBigDiffuse);
   world->append(sBigMetal);
 
-  return world;
+  // Measure BVH construction time
+  auto start = std::chrono::steady_clock::now();
+
+  // Construct the BVH
+  BVH *as = new BVH(world, 0, world->size());
+
+  auto end = std::chrono::steady_clock::now();
+  auto duration =
+       std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+  std::cout << "Constructed in " << duration << " seconds." << std::endl;
+
+  return as;
+}
+
+Hitable* some_spheres() {
+  Sphere *sFloor = new Sphere(Vec3(3.f, 0, 0.f),
+                          0.5f,
+                          new Lambertian(Vec3(0.5f, 0.5f, 0.5f)));
+  Sphere *sPinkish = new Sphere(Vec3(0.f, 0.f, 0.f),
+                          0.5f,
+                          new Lambertian(Vec3(0.8f, 0.3f, 0.3f)));
+  Sphere *sGoldish = new Sphere(Vec3(-3.f, 0.f, 1.f),
+                              0.5f,
+                              new Metal(Vec3(1.f, 0.71f, 0.29f), 0.8f));
+  Sphere *sSilverish = new Sphere(Vec3(-6.f, 0.f, 1.f),
+                          0.5f,
+                          new Metal(Vec3(0.95f, 0.93f, 0.88f), 0.9f));
+  Sphere *sWaterish = new Sphere(Vec3(-9.f, 0.f, 1.f),
+                                0.5f,
+                                new Dialectic(1.52f));
+
+  HitableList *world = new HitableList;
+  world->append(sPinkish);
+  world->append(sFloor);
+  world->append(sGoldish);
+  world->append(sSilverish);
+  world->append(sWaterish);
+
+  // Measure BVH construction time
+  auto start = std::chrono::steady_clock::now();
+
+  // Construct the BVH
+  BVH *as = new BVH(world, 0, world->size());
+
+  auto end = std::chrono::steady_clock::now();
+  auto duration =
+       std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+  std::cout << "Constructed in " << duration << " seconds." << std::endl;
+
+  return as;
 }
 
 // // Construct sample scene
@@ -193,32 +243,10 @@ Hitable* cover_scene() {
 // world->append(blue_sphere);
 // world->append(red_sphere);
 
-// Sphere *sFloor = new Sphere(Vec3(0.f, -100.5f, -1.f),
-//                         100.f,
-//                         new Lambertian(Vec3(0.5f, 0.5f, 0.5f)));
-// Sphere *sPinkish = new Sphere(Vec3(0.f, 0.f, 1.f),
-//                         0.5f,
-//                         new Lambertian(Vec3(0.8f, 0.3f, 0.3f)));
-// Sphere *sGoldish = new Sphere(Vec3(1.f, 0.f, 1.f),
-//                              0.5f,
-//                              new Metal(Vec3(1.f, 0.71f, 0.29f), 0.8f));
-// Sphere *sSilverish = new Sphere(Vec3(-1.f, 0.f, 1.f),
-//                         0.5f,
-//                         new Metal(Vec3(0.95f, 0.93f, 0.88f), 0.9f));
-// Sphere *sWaterish = new Sphere(Vec3(-2.f, 0.f, 1.f),
-//                                0.5f,
-//                                new Dialectic(1.52f));
-
-// HitableList *world = new HitableList;
-// world->append(sPinkish);
-// world->append(sFloor);
-// world->append(sGoldish);
-// world->append(sSilverish);
-// world->append(sWaterish);
 
 int main() {
-  int nx = 1280;
-  int ny = 720;
+  int nx = 640;
+  int ny = 480;
   int ns = 100;  // Number of samples
 
   Vec3 lookfrom(13.f, 2.f, 3.f);
@@ -233,7 +261,7 @@ int main() {
 
   // File naming
   std::ostringstream fileName;
-  fileName << "cover_floor+bigS+smallS.ppm";
+  fileName << "coverSceneWithAS.ppm";
   std::string fileNameStr = fileName.str();
 
   // Measure the rendering time
