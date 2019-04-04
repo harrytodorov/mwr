@@ -4,6 +4,8 @@
 #ifndef SRC_HITABLELIST_H_
 #define SRC_HITABLELIST_H_
 
+#include <iostream>
+
 #include "Hitable.h"
 #include "AABB.h"
 
@@ -15,12 +17,15 @@ class HitableList: public Hitable {
   HitableList& operator=(const HitableList &l) = delete;
   ~HitableList();
 
-  int size() const { return _size; }
-  int capacity() const { return _capacity; }
-  int is_empty() const {return _size == 0; }
+  inline int size() const { return _size; }
+  inline int capacity() const { return _capacity; }
+  inline int is_empty() const {return _size == 0; }
+
+  Hitable* operator[](int i);
 
   void append(Hitable *hitable);
   void clear(Hitable **array);
+  void sort_in_range(int axis, int min, int max);
 
   bool hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const;
   bool bounding_box(AABB &box) const;
@@ -48,6 +53,14 @@ HitableList::HitableList(int capacity) {
 // _____________________________________________________________________________
 HitableList::~HitableList() {
   clear(_data);
+}
+
+// _____________________________________________________________________________
+Hitable* HitableList::operator[](int i) {
+  if (i >= 0 && i < _size) {
+    return _data[i];
+  }
+  return nullptr;
 }
 
 // _____________________________________________________________________________
@@ -79,6 +92,7 @@ void HitableList::append(Hitable *hitable) {
   _size++;
 }
 
+// _____________________________________________________________________________
 void HitableList::clear(Hitable **array) {
   // Go through all Hitable elements and free the memory occupied by them
   for (int i = 0; i < _size; i++) {
@@ -88,6 +102,81 @@ void HitableList::clear(Hitable **array) {
   delete[] array;
   // Set the size to 0
   _size = 0;
+}
+
+// _____________________________________________________________________________
+int aabb_x_cmp(const void *a, const void *b) {
+  // Get pointers to the Hitable element
+  Hitable *ha = *(Hitable**)a;
+  Hitable *hb = *(Hitable**)b;
+  AABB a_box, b_box;
+
+  // Check, if the elements have bounding boxes
+  if (!ha->bounding_box(a_box) ||
+      !hb->bounding_box(b_box)) {
+    std::cout << "No Bounding box; cannot compare elements" << std::endl;
+    return 0;
+  }
+
+  // Sort by x ascending
+  if (a_box.min().x() - b_box.min().x() < 0.f) return -1;
+  else if (a_box.min().x() - b_box.min().x() > 0.f) return 1;
+  else return 0;
+}
+
+// _____________________________________________________________________________
+int aabb_y_cmp(const void *a, const void *b) {
+  // Get pointers to the Hitable element
+  Hitable *ha = *(Hitable**)a;
+  Hitable *hb = *(Hitable**)b;
+  AABB a_box, b_box;
+
+  // Check, if the elements have bounding boxes
+  if (!ha->bounding_box(a_box) ||
+      !hb->bounding_box(b_box)) {
+    std::cout << "No Bounding box; cannot compare elements" << std::endl;
+    return 0;
+  }
+
+  // Sort by x ascending
+  if (a_box.min().y() - b_box.min().y() < 0.f) return -1;
+  else if (a_box.min().y() - b_box.min().y() > 0.f) return 1;
+  else return 0;
+}
+
+// _____________________________________________________________________________
+int aabb_z_cmp(const void *a, const void *b) {
+  // Get pointers to the Hitable element
+  Hitable *ha = *(Hitable**)a;
+  Hitable *hb = *(Hitable**)b;
+  AABB a_box, b_box;
+
+  // Check, if the elements have bounding boxes
+  if (!ha->bounding_box(a_box) ||
+      !hb->bounding_box(b_box)) {
+    std::cout << "No Bounding box; cannot compare elements" << std::endl;
+    return 0;
+  }
+
+  // Sort by x ascending
+  if (a_box.min().z() - b_box.min().z() < 0.f) return -1;
+  else if (a_box.min().z() - b_box.min().z() > 0.f) return 1;
+  else return 0;
+}
+
+// _____________________________________________________________________________
+void HitableList::sort_in_range(int axis, int min, int max) {
+  int number_elements = max - min;
+  // x axis
+  if (axis == 0) {
+    qsort(_data + min, number_elements, sizeof(Hitable*), aabb_x_cmp);
+  // y axis
+  } else if (axis == 1) {
+    qsort(_data + min, number_elements, sizeof(Hitable*), aabb_y_cmp);
+  // z axis
+  } else {
+    qsort(_data + min, number_elements, sizeof(Hitable*), aabb_z_cmp);
+  }
 }
 
 // _____________________________________________________________________________
