@@ -5,6 +5,7 @@
 #define SRC_AABB_H_
 
 #include <limits>  // min/max float
+#include <algorithm>  // swap
 
 #include "Vec3.h"
 #include "Ray.h"
@@ -50,11 +51,18 @@ bool AABB::hit(const Ray &r, float &t_min, float &t_max) const {
   float t0, t1;
   // Iterate over the 3 axis of the AABB
   for (int a = 0; a < 3; a++) {
+    // Compute the inverse ray's direction
+    float inv_dir = 1.f / r.direction()[a];
     // Compute t0 and t1
-    t0 = minf((min()[a] - r.origin()[a]) / r.direction()[a],
-              (max()[a] - r.origin()[a]) / r.direction()[a]);
-    t1 = maxf((min()[a] - r.origin()[a]) / r.direction()[a],
-              (max()[a] - r.origin()[a]) / r.direction()[a]);
+    t0 = (min()[a] - r.origin()[a]) * inv_dir;
+    t1 = (max()[a] - r.origin()[a]) * inv_dir;
+    if (inv_dir < 0.f) std::swap(t0, t1);
+
+    // Old computation
+    // t0 = minf((min()[a] - r.origin()[a]) / r.direction()[a],
+    //           (max()[a] - r.origin()[a]) / r.direction()[a]);
+    // t1 = maxf((min()[a] - r.origin()[a]) / r.direction()[a],
+    //           (max()[a] - r.origin()[a]) / r.direction()[a]);
 
     // Update the ray's min/max intervals
     t_min = maxf(t0, t_min);
