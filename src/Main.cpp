@@ -19,10 +19,11 @@
 #include "Dialectic.h"
 #include "BVH.h"
 #include "SolidTexture.h"
+#include "CheckerTexture.h"
 
 // Definitions
 #define SHADOW_BIAS 0.001f
-#define RECURSION_DEPTH 4
+#define RECURSION_DEPTH 10
 
 Vec3 color(const Ray &r, Hitable *world, int depth) {
   HitRecord rec;
@@ -123,10 +124,12 @@ Hitable* cover_scene() {
   int n = 500;
 
   HitableList *world = new HitableList(n+1);
-
+  Texture *white = new SolidTexture(Vec3(0.9f, 0.9f, 0.9f));
+  Texture *black = new SolidTexture(Vec3(0.05f, 0.05f, 0.05f));
+  Texture *chercker = new CheckerTexture(white, black, 20.f);
   Sphere *sFloor = new Sphere(Vec3(0.f, -1000.f, 0.f),
                               1000.f,
-                              new Lambertian(new SolidTexture(Vec3(0.5f, 0.5f, 0.5f))));
+                              new Lambertian(chercker));
   world->append(sFloor);
 
   // Add small spheres
@@ -247,31 +250,44 @@ Hitable* some_spheres() {
 int main() {
   int nx = 640;
   int ny = 480;
-  int ns = 1;  // Number of samples
+  int ns = 10;  // Number of samples
 
-  Vec3 lookfrom(13.f, 2.f, 3.f);
+  // Vec3 lookfrom(13.f, 2.f, 3.f);
+  // Vec3 lookat(0.f, 0.f, 0.f);
+  Vec3 lookfrom(0.f, 0.f, 10.f);
   Vec3 lookat(0.f, 0.f, 0.f);
   Vec3 up(0.f, 1.f, 0.f);
   float ar = static_cast<float>(nx) / static_cast<float>(ny);
   float lens_radius = 0.05f;
   float distance_to_focus = 10.f;
 
-  // Camera
-  Camera cam(lookfrom, lookat, up, 20.f, ar, lens_radius, distance_to_focus);
+  for (float i = 1.f; i < 20.f; i++) {
+    // Just want to figure out how this checker pattern works
+    Texture *white = new SolidTexture(Vec3(0.9f, 0.9f, 0.9f));
+    Texture *black = new SolidTexture(Vec3(0.05f, 0.05f, 0.05f));
+    Texture *chercker = new CheckerTexture(white, black, i);
+    Sphere *sFloor = new Sphere(Vec3(0.f, 0.f, 0.f),
+                                1.f,
+                                new Lambertian(chercker));
 
-  // File naming
-  std::ostringstream fileName;
-  fileName << "coverSceneWithAS.ppm";
-  std::string fileNameStr = fileName.str();
 
-  // Measure the rendering time
-  auto start = std::chrono::steady_clock::now();
+    // Camera
+    Camera cam(lookfrom, lookat, up, 20.f, ar, lens_radius, distance_to_focus);
 
-  // Render scene and output image
-  render_scene(cam, some_spheres(), fileNameStr.c_str(), nx, ny, ns);
+    // File naming
+    std::ostringstream fileName;
+    fileName << "checkerSphere_" << i << ".ppm";
+    std::string fileNameStr = fileName.str();
 
-  auto end = std::chrono::steady_clock::now();
-  auto duration =
-       std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
-  std::cout << "Rendered in " << duration << " seconds." << std::endl;
+    // Measure the rendering time
+    auto start = std::chrono::steady_clock::now();
+
+    // Render scene and output image
+    render_scene(cam, sFloor, fileNameStr.c_str(), nx, ny, ns);
+
+    auto end = std::chrono::steady_clock::now();
+    auto duration =
+        std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+    std::cout << "Rendered in " << duration << " seconds." << std::endl;
+  }
 }
