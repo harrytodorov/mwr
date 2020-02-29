@@ -20,40 +20,43 @@
 #include "BVH.h"
 #include "SolidTexture.h"
 #include "CheckerTexture.h"
+#include "DiffuseLight.h"
 
 // Definitions
 #define SHADOW_BIAS 0.001f
-#define RECURSION_DEPTH 10
+#define RECURSION_DEPTH 50
 
 Vec3 color(const Ray &r, Hitable *world, int depth) {
   HitRecord rec;
   if (world->hit(r, SHADOW_BIAS, MAXFLOAT, rec)) {
     Ray scattered_ray;
     Vec3 attenuation;
-
+    Vec3 emitted = rec.mat_ptr->emit(rec.u, rec.v, rec.p);
     // Bounce the scattered ray, until maximum recursion depth is reached,
     // or the material on the hitpoint has decided not to scatter the ray
     if (depth < RECURSION_DEPTH &&
         rec.mat_ptr->scatter(r, rec, attenuation, scattered_ray)) {
-      return attenuation * color(scattered_ray, world, depth+1);
+      return emitted + attenuation * color(scattered_ray, world, depth+1);
     } else {
-      return Vec3(0.f, 0.f, 0.f);
+      return emitted;
     }
   // Nothing is hit
   } else {
-    Vec3 unit_direction = make_unit_vector(r.direction());
-    // After making the ray's direction a unit vector, y-axis is in the range
-    // [-1, 1]. Following transformation first adds 1 to the y-axis
-    // and it now has the range [0, 2]. Multiplying it by 0.5 scales down the
-    // range to [0, 1]
-    float t = 0.5f * (unit_direction.y() + 1.f);
-    // Linear interpolation interpolation between white (t = 0) and blue
-    // (t = 1).
-    return
-    // white color
-    (1.f - t)*Vec3(1.f, 1.f, 1.f) +
-    // blue color
-    t*Vec3(0.5f, 0.7f, 1.f);
+    // Black background to test lightning
+    return Vec3(0.f, 0.f, 0.f);
+    // Vec3 unit_direction = make_unit_vector(r.direction());
+    // // After making the ray's direction a unit vector, y-axis is in the range
+    // // [-1, 1]. Following transformation first adds 1 to the y-axis
+    // // and it now has the range [0, 2]. Multiplying it by 0.5 scales down the
+    // // range to [0, 1]
+    // float t = 0.5f * (unit_direction.y() + 1.f);
+    // // Linear interpolation interpolation between white (t = 0) and blue
+    // // (t = 1).
+    // return
+    // // white color
+    // (1.f - t)*Vec3(1.f, 1.f, 1.f) +
+    // // blue color
+    // t*Vec3(0.5f, 0.7f, 1.f);
   }
 }
 
@@ -234,60 +237,98 @@ Hitable* some_spheres() {
   return as;
 }
 
-// // Construct sample scene
-// // cos(PI/4) ~ 0.70..
-// float radius = static_cast<float>(cos(M_PI_4));
-// Sphere *blue_sphere = new Sphere(Vec3(-radius, 0.f, -1.f),
-//                                 radius,
-//                                 new Lambertian(new SolidTexture(Vec3(0.f, 0.f, 1.f)));
-// Sphere *red_sphere = new Sphere(Vec3(radius, 0.f, -1.f),
-//                                 radius,
-//                                 new Lambertian(new SolidTexture(Vec3(1.f, 0.f, 0.f)));
-// world->append(blue_sphere);
-// world->append(red_sphere);
+Hitable* two_spheres_checker() {
+  Texture *white = new SolidTexture(Vec3(0.9f, 0.9f, 0.9f));
+  Texture *black = new SolidTexture(Vec3(0.05f, 0.05f, 0.05f));
+  Texture *chercker = new CheckerTexture(white, black, 10.f);
+  Texture *lightColor = new SolidTexture(Vec3(2.f, 2.f, 2.f));
 
+  Material *light = new DiffuseLight(lightColor);
+  Hitable *upSphere = new Sphere(Vec3(0.f, 4.f, 0.f),
+                                 3.f,
+                                 light);
+  Hitable *loSphere = new Sphere(Vec3(0.f, -10.f, 0.f),
+                                 10.f,
+                                 new Lambertian(chercker));
+
+  HitableList *world = new HitableList(2);
+  world->append(upSphere);
+  world->append(loSphere);
+  return world;
+}
+
+Hitable* spheres_with_light() {
+  Sphere *sFloor = new Sphere(Vec3(0.f, -50.5f, 0.f),
+                          50.f,
+                          new Lambertian(new SolidTexture(Vec3(0.5f, 0.5f, 0.5f))));
+  Sphere *sPinkish = new Sphere(Vec3(0.f, 0.f, 0.f),
+                          0.5f,
+                          new Lambertian(new SolidTexture(Vec3(0.8f, 0.3f, 0.3f))));
+  // Sphere *sGoldish = new Sphere(Vec3(-3.f, 0.f, 0.f),
+  //                             0.5f,
+  //                             new Metal(Vec3(1.f, 0.71f, 0.29f), 0.8f));
+  // Sphere *sSilverish = new Sphere(Vec3(-6.f, 0.f, 0.f),
+  //                         0.5f,
+  //                         new Metal(Vec3(0.95f, 0.93f, 0.88f), 0.9f));
+  // Sphere *sWaterish = new Sphere(Vec3(-9.f, 0.f, 0.f),
+  //                               0.5f,
+  //                               new Dialectic(1.52f));
+  Sphere *sLight = new Sphere(Vec3(0.f, 2.f, 0.f),
+                              0.5f,
+                              new DiffuseLight(new SolidTexture(Vec3(4.f, 4.f, 4.f))));
+
+  HitableList *world = new HitableList;
+  world->append(sPinkish);
+  world->append(sFloor);
+  // world->append(sGoldish);
+  // world->append(sSilverish);
+  // world->append(sWaterish);
+  // world->append(sLight);
+
+  // Measure BVH construction time
+  auto start = std::chrono::steady_clock::now();
+
+  // Construct the BVH
+  BVH *as = new BVH(world, 0, world->size());
+
+  auto end = std::chrono::steady_clock::now();
+  auto duration =
+       std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+  std::cout << "Constructed in " << duration << " seconds." << std::endl;
+
+  return as;
+}
 
 int main() {
   int nx = 640;
   int ny = 480;
   int ns = 10;  // Number of samples
 
-  // Vec3 lookfrom(13.f, 2.f, 3.f);
-  // Vec3 lookat(0.f, 0.f, 0.f);
-  Vec3 lookfrom(0.f, 0.f, 10.f);
+  Vec3 lookfrom(13.f, 2.f, 3.f);
   Vec3 lookat(0.f, 0.f, 0.f);
+  // Vec3 lookfrom(0.f, 0.f, 10.f);
+  // Vec3 lookat(0.f, 0.f, 0.f);
   Vec3 up(0.f, 1.f, 0.f);
   float ar = static_cast<float>(nx) / static_cast<float>(ny);
-  float lens_radius = 0.05f;
+  float lens_radius = 0.f;
   float distance_to_focus = 10.f;
 
-  for (float i = 1.f; i < 20.f; i++) {
-    // Just want to figure out how this checker pattern works
-    Texture *white = new SolidTexture(Vec3(0.9f, 0.9f, 0.9f));
-    Texture *black = new SolidTexture(Vec3(0.05f, 0.05f, 0.05f));
-    Texture *chercker = new CheckerTexture(white, black, i);
-    Sphere *sFloor = new Sphere(Vec3(0.f, 0.f, 0.f),
-                                1.f,
-                                new Lambertian(chercker));
+  // Camera
+  Camera cam(lookfrom, lookat, up, 20.f, ar, lens_radius, distance_to_focus);
 
+  // File naming
+  std::ostringstream fileName;
+  fileName << "spheresWithLight_5" << ".ppm";
+  std::string fileNameStr = fileName.str();
 
-    // Camera
-    Camera cam(lookfrom, lookat, up, 20.f, ar, lens_radius, distance_to_focus);
+  // Measure the rendering time
+  auto start = std::chrono::steady_clock::now();
 
-    // File naming
-    std::ostringstream fileName;
-    fileName << "checkerSphere_" << i << ".ppm";
-    std::string fileNameStr = fileName.str();
+  // Render scene and output image
+  render_scene(cam, two_spheres_checker(), fileNameStr.c_str(), nx, ny, ns);
 
-    // Measure the rendering time
-    auto start = std::chrono::steady_clock::now();
-
-    // Render scene and output image
-    render_scene(cam, sFloor, fileNameStr.c_str(), nx, ny, ns);
-
-    auto end = std::chrono::steady_clock::now();
-    auto duration =
-        std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
-    std::cout << "Rendered in " << duration << " seconds." << std::endl;
-  }
+  auto end = std::chrono::steady_clock::now();
+  auto duration =
+      std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+  std::cout << "Rendered in " << duration << " seconds." << std::endl;
 }

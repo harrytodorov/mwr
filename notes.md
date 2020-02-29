@@ -1,3 +1,6 @@
+# CMake Release build:
+Check [this](https://stackoverflow.com/a/7725055/2935386).
+
 # Google's cpplint command:
 Pass arguments to be modified to functions not as pointers, but as
 const reference.

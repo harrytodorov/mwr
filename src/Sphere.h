@@ -5,6 +5,7 @@
 #define SRC_SPHERE_H_
 
 #include <iostream>
+#include <cmath>
 
 #include "Hitable.h"
 #include "Material.h"
@@ -35,6 +36,11 @@ class Sphere: public Hitable {
     // even when the the hit is inside
     rec.normal = (rec.p - _center) / _radius;
     rec.mat_ptr = _mat_ptr;
+    // Compute sphere's polar coordinates
+    float phi = static_cast<float>(atan2(rec.p.z(), rec.p.x()));
+    float theta = static_cast<float>(asin(rec.p.y()));
+    rec.u = 1.f - (phi - M_PI) / (2.f * M_PI);
+    rec.v = (theta + M_PI / 2.f) / M_PI;
   }
 
  private:

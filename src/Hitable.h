@@ -11,6 +11,8 @@
 class Material;
 
 struct HitRecord {
+  float u;
+  float v;
   float t;
   Vec3 p;
   Vec3 normal;

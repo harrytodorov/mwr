@@ -12,6 +12,7 @@ add_compile_options(-Wall -Wextra -pedantic)
 add_compile_options("-fsanitize=address")
 link_libraries("-fsanitize=address -fno-omit-frame-pointer")
 
+# Set source files
 set(SOURCES src/Main.cpp
             src/Vec3.h
             src/Ray.h
@@ -28,7 +29,11 @@ set(SOURCES src/Main.cpp
             src/BVH.h
             src/Texture.h
             src/SolidTexture.h
-            src/CheckerTexture.h)
+            src/CheckerTexture.h
+            src/DiffuseLight.h)
 
 # Create executable
 add_executable(ManyWeekendsRayTracer src/Main.cpp)
+
+# Create executable for simple Monte Carlo program
+add_executable(SimpleMC src/MonteCarlo.cpp)

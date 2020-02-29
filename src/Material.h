@@ -16,6 +16,10 @@ class Material {
                        const HitRecord &rec,
                        Vec3 &attenuation,
                        Ray &scattered) const = 0;
+
+  virtual Vec3 emit(float u, float v, const Vec3 &p) const {
+    return Vec3(0.f, 0.f, 0.f);
+  }
 };
 
 #endif  // SRC_MATERIAL_H_
